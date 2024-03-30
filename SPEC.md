@@ -7951,7 +7951,9 @@ And `/local/fs/tmp/array.txt` would contain:
 ### `read_tsv`
 
 ```
-Array[Array[String]] read_tsv(File), Array[Object] read_tsv(File, true), Array[Object] read_tsv(File, Boolean, Array[String])
+Array[Array[String]] read_tsv(File)
+Array[Object] read_tsv(File, true)
+Array[Object] read_tsv(File, Boolean, Array[String])
 ```
 
 Reads a tab-separated value (TSV) file as an `Array[Array[String]]` representing a table of values. Trailing end-of-line characters (`\r` and `\n`) are removed from each line.
@@ -8070,7 +8072,9 @@ Example output:
 ### `write_tsv`
 
 ```
-File write_tsv(Array[Array[String]]|Array[Struct]), File write_tsv(Array[Array[String]], true, Array[String]), File write_tsv(Array[Struct], Boolean, Array[String])
+File write_tsv(Array[Array[String]]|Array[Struct])
+File write_tsv(Array[Array[String]], true, Array[String])
+File write_tsv(Array[Struct], Boolean, Array[String])
 ```
 Given an `Array` of elements, writes a tab-separated value (TSV) file with one line for each element.
 
