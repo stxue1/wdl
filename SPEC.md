@@ -8511,18 +8511,6 @@ CODE
 
 And `/local/fs/tmp/map.json` would contain:
 
-`first\nsecond\nthird`
-
-## File write_tsv(Array[Array[String]]|Array[Struct]), File write_tsv(Array[Array[String]], true, Array[String]), File write_tsv(Array[Struct], Boolean, Array[String])
-
-Given an `Array` of elements, writes a tab-separated value (TSV) file with one line for each element.
-
-There are three variants of this function:
-
-1. `File write_tsv(Array[Array[String]])`: Each element is concatenated using a tab ('\t') delimiter and written as a row in the file. There is no header row.
-2. `File write_tsv(Array[Array[String]], true, Array[String])`: The second argument must be `true` and the third argument provides an `Array` of column names. The column names are concatenated to create a header that is written as the first row of the file. All elements must be the same length as the header array.
-3. `File write_tsv(Array[Struct], [Boolean, [Array[String]]])`: Each element is a struct whose field values are concatenated in the order the fields are defined. The optional second argument specifies whether to write a header row. If it is `true`, then the header is created from the struct field names. If the second argument is `true`, then the optional third argument may be used to specify column names to use instead of the struct field names. 
-
 Each line is terminated by the newline (`\n`) character. 
 ```json
 {
