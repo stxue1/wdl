@@ -182,6 +182,7 @@ Revisions to this specification are made periodically in order to correct errors
     - [`as_map`](#as_map)
     - [`keys`](#keys)
     - [✨ `contains_key`](#-contains_key)
+    - [✨ `values`](#-values)
     - [`collect_by_key`](#collect_by_key)
   - [Other Functions](#other-functions)
     - [`defined`](#defined)
@@ -9994,15 +9995,20 @@ Test config:
 
 ```
 Array[P] keys(Map[P, Y])
+Array[String] keys(Struct|Object)
 ```
 
-Creates an `Array` of the keys from the input `Map`, in the same order as the elements in the map.
+Given a key-value type collection (`Map`, `Struct`, or `Object`), returns an `Array` of the keys from the input collection, in the same order as the elements in the collection.
+
+When the argument is a `Struct`, the returned array will contain the keys in the same order they appear in the struct definition. When the argument is an `Object`, the returned array has no guaranteed order.
+
+When the input `Map` or `Object` is empty, an empty array is returned.
 
 **Parameters**
 
-1. `Map[P, Y]`: `Map` from which to extract keys.
+1. `Map[P, Y]`|`Struct`|`Object`: Collection from which to extract keys.
 
-**Returns**: `Array[P]` of the input `Map`s keys.
+**Returns**: `Array[P]` of the input collection's keys. If the input is a `Struct` or `Object`, then the returned array will be of type `Array[String]`.
 
 <details>
 <summary>
@@ -10011,12 +10017,21 @@ Example: test_keys.wdl
 ```wdl
 version 1.2
 
+struct Name {
+  String first
+  String last
+}
+
 workflow test_keys {
   input {
-    Map[String,Int] x = {"a": 1, "b": 2, "c": 3}
+    Map[String, Int] x = {"a": 1, "b": 2, "c": 3}
     Map[String, Pair[File, File]] str_to_files = {
       "a": ("a.bam", "a.bai"), 
       "b": ("b.bam", "b.bai")
+    }
+    Name name = Name {
+      first: "John",
+      last: "Doe"
     }
   }
 
@@ -10029,6 +10044,7 @@ workflow test_keys {
   output {
     Boolean is_true1 = keys(x) == ["a", "b", "c"]
     Boolean is_true2 = str_to_files_keys == keys(str_to_files)
+    Boolean is_true3 = keys(name) == ["first", "last"]
   }
 }
 ```
@@ -10045,7 +10061,8 @@ Example output:
 ```json
 {
   "test_keys.is_true1": true,
-  "test_keys.is_true2": true
+  "test_keys.is_true2": true,
+  "test_keys.is_true3": true
 }
 ```
 </p>
@@ -10082,7 +10099,7 @@ For example, if the first argument is a `Map[String, Map[String, Int]]` and the 
 
 <details>
   <summary>
-  Example: get_values.wdl
+  Example: test_contains_key.wdl
   
   ```wdl
   version 1.2
@@ -10092,7 +10109,7 @@ For example, if the first argument is a `Map[String, Map[String, Int]]` and the 
     Map[String, String]? details
   }
 
-  workflow get_ints_and_exts {
+  workflow test_contains_key {
     input {
       Map[String, Int] m
       String key1
@@ -10115,16 +10132,16 @@ For example, if the first argument is a `Map[String, Map[String, Int]]` and the 
 
   ```json
   {
-    "get_values.m": {"a": 1, "b": 2},
-    "get_values.key1": "a",
-    "get_values.key2": "c",
-    "get_values.p1": {
+    "test_contains_key.m": {"a": 1, "b": 2},
+    "test_contains_key.key1": "a",
+    "test_contains_key.key2": "c",
+    "test_contains_key.p1": {
       "name": "John",
       "details": {
         "phone": "123-456-7890"
       }
     },
-    "get_values.p2": {
+    "test_contains_key.p2": {
       "name": "Agent X"
     }
   }
@@ -10134,13 +10151,88 @@ For example, if the first argument is a `Map[String, Map[String, Int]]` and the 
 
   ```json
   {
-    "get_ints_and_exts.i1": 1,
-    "get_ints_and_exts.i2": null,
-    "get_ints_and_exts.phone1": "123-456-7890",
-    "get_ints_and_exts.phone2": null,
+    "test_contains_key.i1": 1,
+    "test_contains_key.i2": null,
+    "test_contains_key.phone1": "123-456-7890",
+    "test_contains_key.phone2": null,
   }
   ``` 
   </p>
+</details>
+
+### ✨ `values`
+
+```
+Array[Y] values(Map[P, Y])
+```
+
+Returns an `Array` of the values from the input `Map`, in the same order as the elements in the map. If the map is empty, an empty array is returned.
+
+**Parameters**
+
+1. `Map[P, Y]`: `Map` from which to extract values.
+
+**Returns**: `Array[Y]` of the input `Map`s values.
+
+**Example**
+
+<details>
+<summary>
+Example: test_values.wdl
+
+```wdl
+version 1.2
+
+task add {
+  input {
+    Int x
+    Int y
+  }
+
+  Int z = x + y
+
+  command <<<
+  echo "~{x} + ~{y} = ~{z}"
+  >>>
+
+  output {
+    Int sum = z
+  }
+}
+
+workflow test_values {
+  input {
+    Map[String, Pair[Int, Int]] str_to_ints = {
+      "a": (1, 2),
+      "b": (3, 4)
+    }
+  }
+  
+  scatter (files in values(str_to_files)) {
+    call add { input: x=ints.left, y=ints.right }
+  }
+  
+  output {
+    Array[Int] sums = add.sum
+  }
+}
+```
+</summary>
+<p>
+Example input:
+
+```json
+{}
+```
+
+Example output:
+
+```json
+{
+  "test.values.sums": [3, 7]
+}
+```
+</p>
 </details>
 
 ### `collect_by_key`
@@ -10541,7 +10633,7 @@ There is no natural or unambiguous serialization of a `Map` with a non-`String` 
 
 #### Map to Struct
 
-A `Map[X, Y]` can be converted to a `Struct` with two array members: `Array[X] keys` and `Array[Y] values`. This is the suggested approach.
+A `Map[P, Y]` can be converted to a `Struct` with two array members: `Array[X] keys` and `Array[Y] values`. This is the suggested approach.
 
 <details>
 <summary>
@@ -10598,7 +10690,7 @@ Example output:
 
 #### Map to Array
 
-A `Map[X, X]` can be converted to an array of `Pair`s. Each pair can then be converted to a serializable format using one of the methods described in the previous section. This approach is less desirable as it requires the use of a `scatter`.
+A `Map[P, P]` can be converted to an array of `Pair`s. Each pair can then be converted to a serializable format using one of the methods described in the previous section. This approach is less desirable as it requires the use of a `scatter`.
 
 <details>
 <summary>
