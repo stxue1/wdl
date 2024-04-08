@@ -65,6 +65,8 @@ version 1.2.0
 
 + Added `find`, and `matches` functions.
 
++ Added `join_paths` function to join two or more paths.
+
 + Added allowance for conversion between `Struct` types when certain criteria are met.
 
 + Generalized `size` function to take any compound value.
