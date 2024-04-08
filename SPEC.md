@@ -170,7 +170,6 @@ Revisions to this specification are made periodically in order to correct errors
     - [`squote`](#squote)
     - [`sep`](#sep-1)
   - [Generic Array Functions](#generic-array-functions)
-    - [`length`](#length)
     - [`range`](#range)
     - [`transpose`](#transpose)
     - [`cross`](#cross)
@@ -188,6 +187,7 @@ Revisions to this specification are made periodically in order to correct errors
     - [`collect_by_key`](#collect_by_key)
   - [Other Functions](#other-functions)
     - [`defined`](#defined)
+    - [`length`](#length)
 - [Input and Output Formats](#input-and-output-formats)
   - [JSON Input Format](#json-input-format)
     - [Optional Inputs](#optional-inputs)
@@ -9329,58 +9329,6 @@ These functions are generic and take an `Array` as input and/or return an `Array
 
 **Restrictions**: None
 
-### `length`
-
-```
-Int length(Array[X])```
-
-Returns the number of elements in an array as an `Int`.
-
-**Parameters**
-
-1. `Array[X]`: An array with any element type.
-
-**Returns**: The length of the array as an `Int`.
-
-<details>
-<summary>
-Example: test_length.wdl
-
-```wdl
-version 1.2
-
-workflow test_length {
-  Array[Int] xs = [1, 2, 3]
-  Array[String] ys = ["a", "b", "c"]
-  Array[String] zs = []
-
-  output {
-    Int xlen = length(xs) # 3
-    Int ylen = length(ys) # 3
-    Int zlen = length(zs) # 0
-  }
-}
-```
-</summary>
-<p>
-Example input:
-
-```json
-{}
-```
-
-Example output:
-
-```json
-{
-  "test_length.xlen": 3,
-  "test_length.ylen": 3,
-  "test_length.zlen": 0
-}
-```
-</p>
-</details>
-
 ### `range`
 
 ```
@@ -10464,6 +10412,70 @@ Example output:
 ```json
 {
   "is_defined.greeting": "Hello John"
+}
+```
+</p>
+</details>
+
+### `length`
+
+```
+Int length(Array[X]|Map[X, Y]|Object|String)
+```
+
+Returns the length of the input argument as an `Int`:
+
+* For an `Array[X]` argument: the number of elements in the array.
+* For a `Map[X, Y]` argument: the number of items in the map.
+* For an `Object` argument: the number of key-value pairs in the object.
+* For a `String` argument: the number of characters in the string.
+
+**Parameters**
+
+1. `Array[X]`|`Map[X, Y]`|`Object`|`String`: A collection or string whose elements are to be counted.
+
+**Returns**: The length of the collection/string as an `Int`.
+
+<details>
+<summary>
+Example: test_length.wdl
+
+```wdl
+version 1.2
+
+workflow test_length {
+  Array[Int] xs = [1, 2, 3]
+  Array[String] ys = ["a", "b", "c"]
+  Array[String] zs = []
+  Map[String, Int] m = {"a": 1, "b", 2}
+  String s = "ABCDE"
+
+  output {
+    Int xlen = length(xs)
+    Int ylen = length(ys)
+    Int zlen = length(zs)
+    Int mlen = length(m)
+    Int slen = length(s)
+  }
+}
+```
+</summary>
+<p>
+Example input:
+
+```json
+{}
+```
+
+Example output:
+
+```json
+{
+  "test_length.xlen": 3,
+  "test_length.ylen": 3,
+  "test_length.zlen": 0,
+  "test_length.mlen": 2,
+  "test_length.slen": 5,
 }
 ```
 </p>
