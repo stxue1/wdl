@@ -65,6 +65,8 @@ version 1.2.0
 
 + Added `find`, and `matches` functions.
 
++ Added optional `default` parameter to `select_first`.
+
 + Generalized `length` function to also accept `Map`, `Object`, and `String` arguments.
 
 + Added multi-line strings. [PR 602](https://github.com/openwdl/wdl/pull/602)
