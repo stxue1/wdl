@@ -1447,9 +1447,9 @@ Example output:
 
 🗑 It is also possible to assign an `Object` or `Map[String, X]` value to a `Struct` declaration. In the either case:
 
-* The `Object`/`Map` must not have any members that are not declared for the struct.
-* The value of each object/map member must be coercible to the declared type of the struct member.
+* The value of each `Object`/`Map` member must be coercible to the declared type of the struct member.
 * The `Object`/`Map` must at least contain values for all of the struct's non-optional members.
+* Any `Object`/`Map` member that does not correspond to a member of the struct is ignored.
 
 Note that the ability to assign values to `Struct` declarations other than struct literals is deprecated and will be removed in WDL 2.0.
 
@@ -1482,6 +1482,14 @@ The [`task` type](#runtime-access-to-requirements-hints-and-metadata) is a hidde
 WDL has some limited facilities for converting a value of one type to another type. Some of these are explicitly provided by [standard library](#standard-library) functions, while others are [implicit](#type-coercion). When converting between types, it is best to be explicit whenever possible, even if an implicit conversion is allowed.
 
 The execution engine is also responsible for converting (or "serializing") input values when constructing commands, as well as "deserializing" command outputs. For more information, see the [Command Section](#command-section) and the more extensive Appendix on [WDL Value Serialization and Deserialization](#appendix-a-wdl-value-serialization-and-deserialization).
+
+Note that type conversion is non-destructive - the converted value can be considered to be a new value that copies whatever properties of the original value are supported by the target type. If the original value was assigned to a variable, then that variable remains unchanged after the type conversion. For example:
+
+```
+String path = "/path/to/file"
+File file = path
+String new_path = "~{path}_2"  # can still use `path` here
+```
 
 ##### Primitive Conversion to String 
 
