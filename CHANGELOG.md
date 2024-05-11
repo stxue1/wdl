@@ -89,7 +89,7 @@ version 1.2.0
 
 + Added `Directory` type.
 
-+ Added JSON extended file/directory input/output format.
++ Added JSON extended file/directory input/output format. [PR 643] (https://github.com/openwdl/wdl/pull/643)
 
 version 1.1.1
 ---------------------------
