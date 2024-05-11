@@ -89,6 +89,8 @@ version 1.2.0
 
 + Added `Directory` type.
 
++ Added JSON extended file/directory input/output format.
+
 version 1.1.1
 ---------------------------
 
