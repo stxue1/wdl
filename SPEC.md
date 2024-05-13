@@ -562,11 +562,13 @@ The following primitive types exist in WDL:
 
   task write_file_task {
     command <<<
-    printf "hello" > hello.txt
+    printf "hello" > test/hello.txt
     >>>
 
     output {
-      File x = "hello.txt"
+      File x = "test/hello.txt"
+      Directory d = "test"
+
     }
   }
 
@@ -579,8 +581,7 @@ The following primitive types exist in WDL:
       Float f = 27.3
       String s = "hello, world"
       File x = write_file_task.x
-    ##TODO
-      Directory d = write_file_task.x
+      Directory d = write_file_task.d
     }  
   }
   ```
@@ -1586,7 +1587,7 @@ The table below lists all globally valid coercions. The "target" type is the typ
 | Target Type      | Source Type      | Notes/Constraints                                                                                              |
 | ---------------- | ---------------- | -------------------------------------------------------------------------------------------------------------- |
 | `File`           | `String`         |                                                                                                                |
-| `Directory`           | `String`         |                                                                              
+| `Directory`      | `String`         |                                                                              
 | `Float`          | `Int`            | May cause overflow error                                                                                       |
 | `Y?`             | `X`              | `X` must be coercible to `Y`                                                                                   |
 | `Array[Y]`       | `Array[X]`       | `X` must be coercible to `Y`                                                                                   |
