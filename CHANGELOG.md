@@ -87,7 +87,7 @@ version 1.2.0
 
 + Added parameters to `read_tsv` that enable it to read field names from a header row or an `Array[String]` and return an `Array[Object]`. [PR 627](https://github.com/openwdl/wdl/pull/627)
 
-+ Added `Directory` type.
++ Added `Directory` type. [PR 641](https://github.com/openwdl/wdl/pull/641)
 
 + Added clarification that input files and directories should be treated as read-only. [PR 642](https://github.com/openwdl/wdl/pull/642)
 
