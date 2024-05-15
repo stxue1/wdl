@@ -91,6 +91,8 @@ version 1.2.0
 
 + Added clarification that input files and directories should be treated as read-only. [PR 642](https://github.com/openwdl/wdl/pull/642)
 
++ Added JSON extended file/directory input/output format. [PR 643] (https://github.com/openwdl/wdl/pull/643)
+
 version 1.1.1
 ---------------------------
 
