@@ -83,7 +83,7 @@ Revisions to this specification are made periodically in order to correct errors
       - [Expression Placeholders](#expression-placeholders)
       - [Stripping Leading Whitespace](#stripping-leading-whitespace)
     - [Task Outputs](#task-outputs)
-      - [Files and Optional Outputs](#files-and-optional-outputs)
+      - [File, Directory, and Optional Outputs](#file-directory-and-optional-outputs)
     - [Evaluation of Task Declarations](#evaluation-of-task-declarations)
     - [✨ Requirements Section](#-requirements-section)
       - [Units of Storage](#units-of-storage)
@@ -546,9 +546,11 @@ The following primitive types exist in WDL:
 * A `Float` represents a finite 64-bit IEEE-754 floating point number.
 * A `String` represents a unicode character string following the format described [below](#strings).
 * A `File` represents a file (or file-like object).
-    * A `File` declaration can have a string value indicating a relative or absolute path on the local file system.
+* ✨ A `Directory` represents a (possibly nested) directory of files.
+    * A `File` or `Directory` declaration may have have a string value indicating a relative or absolute path on the local file system.
     * Within a WDL file, literal values for files may only be local (relative or absolute) paths.
-    * An execution engine may support other ways to specify [`File` inputs (e.g. as URIs)](#input-and-output-formats), but prior to task execution it must [localize inputs](#task-input-localization) so that the runtime value of a `File` variable is a local path.
+    * An execution engine may support other ways to specify [`File` and `Directory` inputs (e.g. as URIs)](#input-and-output-formats), but prior to task execution it must [localize inputs](#task-input-localization) so that the runtime value of a `File`/`Directory` variable is a local path.
+
 
 <details>
   <summary>
@@ -576,6 +578,8 @@ The following primitive types exist in WDL:
       Float f = 27.3
       String s = "hello, world"
       File x = write_file_task.x
+    ##TODO
+      Directory d = write_file_task.x
     }  
   }
   ```
@@ -595,7 +599,8 @@ The following primitive types exist in WDL:
     "primitive_literals.i": 0,
     "primitive_literals.f": 27.3,
     "primitive_literals.s": "hello, world",
-    "primitive_literals.x": "hello.txt"
+    "primitive_literals.x": "hello.txt",
+    "primitive_literals.d": "hello.txt"
   }
   ```
   </p>
@@ -1580,6 +1585,7 @@ The table below lists all globally valid coercions. The "target" type is the typ
 | Target Type      | Source Type      | Notes/Constraints                                                                                              |
 | ---------------- | ---------------- | -------------------------------------------------------------------------------------------------------------- |
 | `File`           | `String`         |                                                                                                                |
+| `Directory`           | `String`         |                                                                              
 | `Float`          | `Int`            | May cause overflow error                                                                                       |
 | `Y?`             | `X`              | `X` must be coercible to `Y`                                                                                   |
 | `Array[Y]`       | `Array[X]`       | `X` must be coercible to `Y`                                                                                   |
@@ -3477,6 +3483,7 @@ task task_inputs {
     Int i               # a required input parameter
     String s = "hello"  # an input parameter with a default value
     File? f             # an optional input parameter
+    Directory? d = "/etc"             # an optional input parameter with a default value
   }
 
   command <<<
@@ -3498,25 +3505,19 @@ Example input:
   "task_inputs.i": 1
 }
 ```
-
-Example output:
-
-```json
-{}
-```
 </p>
 </details>
 
 #### Task Input Localization
 
-`File` inputs may require localization to the execution environment. For example, a file located on a remote web server that is provided to the execution engine as an `https://` URL must first be downloaded to the machine where the task is being executed.
+`File` and `Directory` inputs may require localization to the execution environment. For example, a file located on a remote web server that is provided to the execution engine as an `https://` URL must first be downloaded to the machine where the task is being executed.
 
-- Files are localized into the execution environment prior to the task execution commencing.
-- When localizing a `File`, the engine may choose to place the file wherever it likes so long as it adheres to these rules:
-  - The original file name must be preserved even if the path to it has changed.
-  - Two input files with the same name must be located separately, to avoid name collision.
-  - Two input files that have the same parent location must be localized into the same directory for task execution. For example, `http://foo.com/bar/a.txt` and `http://foo.com/bar/b.txt` have the same parent (`http://foo.com/bar/`), so they must be localized into the same directory. See below for special-case handling for Versioning Filesystems.
-- When a WDL author uses a `File` input in their [Command Section](#command-section), the fully qualified, localized path to the file is substituted when the command is instantiated.
+- `File`s and `Directory`s  are localized into the execution environment prior to the task execution commencing.
+- When localizing a `File` or `Directory`, the engine may choose to place the local resource wherever it likes so long as it adheres to these rules:
+  - The original file/directory name (the "basename") must be preserved even if the path to it has changed.
+  - Two inputs with the same basename must be located separately, to avoid name collision.
+  - Two inputs that originated in the same storage directory must also be localized into the same parent directory for task execution (see the special case handling for Versioning Filesystems below).
+-When a WDL author uses a `File` or `Directory` input in their [Command Section](#command-section), the absolute path to the localized file/directory is substituted when that declaration is referenced.
 
 The above rules do *not* guarantee that two files will be localized to the same directory *unless* they originate from the same parent location. If you are writing a task for a tool that assumes two files will be co-located, then it is safest to manually co-locate them prior to running the tool. For example, the following task runs a variant caller (`varcall`) on a BAM file and expects the BAM's index file (`.bai` extension) to be in the same directory as the BAM file.
 
@@ -4196,9 +4197,9 @@ After the command is executed, the following outputs are expected to be found in
 
 See the [WDL Value Serialization](#appendix-a-wdl-value-serialization-and-deserialization) section for more details.
 
-#### Files and Optional Outputs
+#### File, Directory, and Optional Outputs
 
-File outputs are represented as string paths.
+`File` and `Directory` outputs are represented as path strings.
 
 A common pattern is to use a placeholder in a string expression to construct a file name as a function of the task input. For example:
 
@@ -4243,6 +4244,8 @@ Example output:
 ```
 </p>
 </details>
+
+In the preceding example, if `prefix` were specified as `"foobar"`, then `"~{prefix}.out"` would be evaluated to `"foobar.out"`.
 
 Another common pattern is to use the [`glob`](#glob) function to define outputs that might contain zero, one, or many files.
 
@@ -4349,7 +4352,7 @@ Test config:
 </p>
 </details>
 
-All file outputs are required to exist, otherwise the task will fail. However, an output may be declared as optional (e.g., `File?` or `Array[File?]`), in which case the value will be undefined if the file does not exist.
+All `File` and `Directory` outputs are required to exist, otherwise the task will fail. However, an output may be declared as optional (e.g. `File?`, `Directory?`, or `Array[File?]`), in which case the value will be undefined if the file does not exist.
 
 <details>
 <summary>
@@ -4412,6 +4415,49 @@ Executing the above task with `make_example2 = true` will result in the followin
 * `optional_output.example1` will resolve to a`File`
 * `optional_output.example2` will resolve to `None`
 * `optional_output.file_array` will resolve to `[<File>, None]`
+
+The execution engine may need to "de-localize" `File` and `Directory` outputs. For example, if the WDL is executed on a cloud instance, then the outputs must be copied to cloud storage after execution completes successfully.
+
+When a `File` or `Directory` is de-localized, its name and contents (including subdirectories) are preserved, but not necessarily its local path. Any hard- or soft-links shall be resolved into regular files/directories.
+
+For example, if a task produces the following `Directory` output:
+
+```txt
+dir/
+ - a           # a file, 10 MB
+ - b -> a      # a softlink to 'a'
+```
+
+Then, after de-localization, it would be:
+
+```txt
+dir/
+ - a           # a file, 10 MB
+ - b           # another file, 10 MB
+```
+
+If this were then passed to the `Directory` input of another task, it would contain two independent files, `dir/a` and `dir/b`, with identical contents.
+
+WDL does not have any built-in way to specify that an output `Directory` should only contain a subset of files in the local directory, so a common pattern is to create an output directory with the desired structure and soft-link the desired output files into that directory.
+
+```wdl
+task output_subset {
+  command <<<
+  for i in 1..10; do
+    touch file${i}
+  done
+  # we only want the first three files in the output directory
+  mkdir -p outdir/subdir
+  ln -s file1 outdir
+  ln -s file2 outdir
+  ln -s file3 outdir/subdir
+  >>>
+  
+  output {
+    Directory outdir = "outdir"
+  }
+}
+```
 
 ### Evaluation of Task Declarations
 
@@ -7503,11 +7549,11 @@ Test config:
 
 ## File Functions
 
-These functions have a `File` as an input and/or output. Due to [type coercion](#type-coercion), `File` arguments may be specified as `String` values.
+These functions have a `File` or `Directory` as an input and/or output. Due to [type coercion](#type-coercion), `File` or `Directory` arguments may be specified as `String` values.
 
-For functions that read from or write to the file system, if the entire contents of the file cannot be read/written for any reason, the calling task or workflow fails with an error. Examples of failure include, but are not limited to, not having appropriate permissions, resource limitations (e.g., memory) when reading the file, and implementation-imposed file size limits.
+For functions that read from or write to the file system, if the entire contents of the  cannot be read/written for any reason, the calling task or workflow fails with an error. Examples of failure include, but are not limited to, not having appropriate permissions, resource limitations (e.g., memory) when reading the file, and implementation-imposed file size limits.
 
-For functions that write to the file system, the implementatuion should generate a random file name in a temporary directory so as not to conflict with any other task output files.
+For functions that write to the file system, the implementation should generate a random file name in a temporary directory so as not to conflict with any other task output files.
 
 **Restrictions**
 
@@ -7519,17 +7565,18 @@ For functions that write to the file system, the implementatuion should generate
 
 ```
 String basename(File, [String])
+String basename(Directory, [String])
 ```
 
-Returns the "basename" of a file - the name after the last directory separator in the file's path. 
+Returns the "basename" of a file or directory - the name after the last directory separator in the path. 
 
-The optional second parameter specifies a literal suffix to remove from the file name.
+The optional second parameter specifies a literal suffix to remove from the file name. If the file name does not end with the specified suffix then it is ignored.
 
 **Parameters**
 
-1. `File`: Path of the file to read.
+1. `File|Directory`: Path of the file or direcoty to read. If the argument is a `String`, it is assumed to be a local file path relative to the current working directory of the task.
 2. `String`: (Optional) Suffix to remove from the file name.
- 
+
 **Returns**: The file's basename as a `String`.
 
 <details>
@@ -7543,6 +7590,7 @@ workflow test_basename {
   output {
     Boolean is_true1 = basename("/path/to/file.txt") == "file.txt"
     Boolean is_true2 = basename("/path/to/file.txt", ".txt") == "file"
+    Boolean is_true3 = basename("/path/to/dir") == "dir" 
   }
 }
 ```
@@ -7747,10 +7795,11 @@ The runtime container may use a non-standard Bash shell that supports more compl
 
 ```
 Float size(File|File?, [String])
+Float size(Directory|Directory?, [String])
 Float size(X|X?, [String])
 ```
 
-Determines the size of a file, or the sum total sizes of the files contained within a compound value. The files may be optional values; `None` values have a size of `0.0`. By default, the size is returned in bytes unless the optional second argument is specified with a [unit](#units-of-storage)
+Determines the size of a file, directory, or the sum total sizes of the files/directories contained within a compound value. The files may be optional values; `None` values have a size of `0.0`. By default, the size is returned in bytes unless the optional second argument is specified with a [unit](#units-of-storage)
 
 In the second variant of the `size` function, the parameter type `X` represents any compound type that contains `File` or `File?` nested at any depth.
 
@@ -7758,10 +7807,10 @@ If the size cannot be represented in the specified unit because the resulting va
 
 **Parameters**
 
-1. `File|File?|X|X?`: A file, or a compound value containing files, for which to determine the size.
+1. `File|File?|Directory|Directory?|X|X?`: A file, or directory or a compound value containing files/directories, for which to determine the size.
 2. `String`: (Optional) The unit of storage; defaults to 'B'.
 
-**Returns**: The size of the file(s) as a `Float`.
+**Returns**: The size of the files/directories as a `Float`.
 
 <details>
 <summary>
@@ -9182,6 +9231,7 @@ value_1\tvalue_2\tvalue_3
 value_4\tvalue_5\tvalue_6
 value_7\tvalue_8\tvalue_9
 ```
+
 
 ## String Array Functions
 
@@ -10821,14 +10871,15 @@ It is recommended (but not required) that JSON outputs be "pretty printed" to be
 
 All primitive WDL types serialize naturally to JSON values:
 
-| WDL Type  | JSON Type |
-| --------- | --------- |
-| `Int`     | `number`  |
-| `Float`   | `number`  |
-| `Boolean` | `boolean` |
-| `String`  | `string`  |
-| `File`    | `string`  |
-| `None`    | `null`    |
+| WDL Type    | JSON Type |
+| ----------- | --------- |
+| `Int`       | `number`  |
+| `Float`     | `number`  |
+| `Boolean`   | `boolean` |
+| `String`    | `string`  |
+| `File`      | `string`  |
+| `Directory` | `string`  |
+| `None`      | `null`    |
 
 JSON has a single numeric type - it does not differentiate between integral and floating point values. A JSON `number` is always deserialized to a WDL `Float`, which may then be [coerced](#type-coercion) to an `Int` if necessary.
 
