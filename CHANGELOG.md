@@ -89,6 +89,8 @@ version 1.2.0
 
 + Added `Directory` type. [PR 641](https://github.com/openwdl/wdl/pull/641)
 
++ Added clarification that input files and directories should be treated as read-only. [PR 642](https://github.com/openwdl/wdl/pull/642)
+
 version 1.1.1
 ---------------------------
 

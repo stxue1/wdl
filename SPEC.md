@@ -561,11 +561,12 @@ The following primitive types exist in WDL:
 
   task write_file_task {
     command <<<
-    printf "hello" > hello.txt
+    printf "hello" > test/hello.txt
     >>>
 
     output {
-      File x = "hello.txt"
+      File x = "test/hello.txt"
+      Directory d = "test"
     }
   }
 
@@ -578,8 +579,7 @@ The following primitive types exist in WDL:
       Float f = 27.3
       String s = "hello, world"
       File x = write_file_task.x
-    ##TODO
-      Directory d = write_file_task.x
+      Directory d = write_file_task.d
     }  
   }
   ```
@@ -1585,7 +1585,7 @@ The table below lists all globally valid coercions. The "target" type is the typ
 | Target Type      | Source Type      | Notes/Constraints                                                                                              |
 | ---------------- | ---------------- | -------------------------------------------------------------------------------------------------------------- |
 | `File`           | `String`         |                                                                                                                |
-| `Directory`           | `String`         |                                                                              
+| `Directory`      | `String`         |                                                                              
 | `Float`          | `Int`            | May cause overflow error                                                                                       |
 | `Y?`             | `X`              | `X` must be coercible to `Y`                                                                                   |
 | `Array[Y]`       | `Array[X]`       | `X` must be coercible to `Y`                                                                                   |
@@ -3540,6 +3540,28 @@ task call_variants_safe {
   output {
     File vcf = "~{prefix}.vcf"
   }
+}
+```
+
+Runtime engines **should** treat input `File`s and `Directory`s as read-only, e.g., by setting their permissions appropriately on the local file system, or by localizing them to a directory marked as read-only.
+
+Note starting in WDL 2.0 engines **must** treat input `File`s and `Directory`s as read-only.
+
+A common pattern for tasks that require multiple input files to be in the same directory is to create a new directory in the execution environment and soft-link the files into that directory.
+
+```wdl
+task two_files_one_directory {
+  input {
+    File bam
+    File bai
+  }
+  String prefix = basename(bam, ".bam")
+  command <<<
+  mkdir inputs
+  ln -s ~{bam} inputs/~{prefix}.bam
+  ln -s ~{bai} inputs/~{prefix}.bam.bai
+  varcall inputs/~{prefix}.bam
+  >>>
 }
 ```
 
