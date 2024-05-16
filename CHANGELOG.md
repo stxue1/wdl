@@ -65,6 +65,8 @@ version 1.2.0
 
 + Added `find`, and `matches` functions.
 
++ Added `chunk` function for chunking an array into sub-arrays.
+
 + Add `parameter_meta` section to struct definition.
 
 + Relaxed the requirements on coercing object/map to struct - extra keys are allowed and ignored. Note that this *may* constitute a breaking change if you rely on a task to fail when coercing an object/map with extra keys.
