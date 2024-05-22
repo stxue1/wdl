@@ -81,6 +81,7 @@ Revisions to this specification are made periodically in order to correct errors
         - [Optional inputs with defaults](#optional-inputs-with-defaults)
     - [Private Declarations](#private-declarations)
     - [Environment Variables](#environment-variables)
+      - [String Escaping and Injection Prevention](#string-escaping-and-injection-prevention)
     - [Command Section](#command-section)
       - [Expression Placeholders](#expression-placeholders)
       - [Stripping Leading Whitespace](#stripping-leading-whitespace)
@@ -920,6 +921,23 @@ An optional declaration has a default initialization of `None`, which indicates 
   ```
   </p>
 </details>
+
+An optional value can be "unwrapped" using the question mark operator (`?`). Unwrapping an optional value turns it into a non-optional value if it is defined, and results in an error if it is `None`. The question mark operator is shorthand for `select_first([x])` where `x` is an optional value.
+
+```wdl
+version 1.2
+workflow unwrap_optional {
+  input {
+    Int? i
+  }
+  Int j1 = i? * 2  # multiplies `i * 2` if `i` is defined, otherwise causes an error
+  Int j2 = select_first([i]) * 2  # this is equivalent to the previous statement
+  
+  output {
+    Boolean is_true = j1 == j2
+  }
+}
+```
 
 For more details, see the sections on [Input Type Constraints](#input-type-constraints) and [Optional Inputs with Defaults](#optional-inputs-with-defaults).
 
