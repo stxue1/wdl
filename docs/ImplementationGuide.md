@@ -28,7 +28,7 @@ The execution engine is responsible for implementing all the necessary logic to 
     * An appropriate runtime instance type is determined from the resource requirements. If no instance type can satisfy all the requirements, task execution is terminated with an error.
     * The task may be executed in the current environment (where the evaluation is occurring) if that is acceptable, otherwise the runtime instance is provisioned and the task execution is "moved" to the runtime instance, where moving may involve a direct transfer of state or a relaunching of the task (starting over with stage 1).
 6. Input localization: Each `File` typed value - including compound values with nested `File`s - that references a non-local resource is localized, which involves:
-    * Creating a local file (or file-like object, such as a `fifo`), according to the [input localization](#task-input-localization) rules.
+    * Creating a local file (or file-like object, such as a `fifo`), according to the [input localization](../SPEC.md#task-input-localization) rules.
     * Making the contents of the remote resource readable from that file, either by downloading the remote resource or by streaming its contents.
     * Replacing the value of the `File` typed declaration with the path to the local file.
 7. Command instantiation:
