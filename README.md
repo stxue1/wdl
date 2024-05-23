@@ -2,7 +2,7 @@
 
 The **Workflow Description Language (WDL)** is an open standard for describing data processing workflows with a human-readable and writeable syntax.
 WDL makes it straightforward to define analysis tasks, connect them together in workflows, and parallelize their execution.
-The language strives to be accessible and understantable to all manner of users, including programmers, analysts, and operators of a production system.
+The language strives to be accessible and understandable to all manner of users, including programmers, analysts, and operators of a production system.
 The language enables common patterns, such as scatter-gather and conditional execution, to be expressed simply.
 WDL is designed for portability, and there are several [implementations](#execution-engines-and-platforms) to choose from that run in a variety of environments, including HPC systems and cloud platforms.
 
@@ -65,7 +65,7 @@ The WDL community also has an official [blog](https://dev.to/openwdl) where anno
 
 - [wdl-docs](https://docs.openwdl.org/en/stable/)
 - [learn-wdl](https://github.com/openwdl/learn-wdl)
-- [WDL Resources](https://support.terra.bio/hc/en-us/sections/360007274612-WDL-Documentation) provided by Terra (a product of the Broad Institute)
+- [WDL Resources](https://support.terra.bio/hc/en-us/sections/360007274612-WDL-Resources) provided by Terra (a product of the Broad Institute)
 
 ## Published Workflows 
 

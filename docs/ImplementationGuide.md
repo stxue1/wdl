@@ -28,14 +28,14 @@ The execution engine is responsible for implementing all the necessary logic to 
     * An appropriate runtime instance type is determined from the resource requirements. If no instance type can satisfy all the requirements, task execution is terminated with an error.
     * The task may be executed in the current environment (where the evaluation is occurring) if that is acceptable, otherwise the runtime instance is provisioned and the task execution is "moved" to the runtime instance, where moving may involve a direct transfer of state or a relaunching of the task (starting over with stage 1).
 6. Input localization: Each `File` typed value - including compound values with nested `File`s - that references a non-local resource is localized, which involves:
-    * Creating a local file (or file-like object, such as a `fifo`), according to the [input localization](#task-input-localization) rules.
+    * Creating a local file (or file-like object, such as a `fifo`), according to the [input localization](../SPEC.md#task-input-localization) rules.
     * Making the contents of the remote resource readable from that file, either by downloading the remote resource or by streaming its contents.
     * Replacing the value of the `File` typed declaration with the path to the local file.
 7. Command instantiation:
     * The command template is evaluated in the context of all the (localized) input and private declaration values, and all expression placeholders are replaced with their (stringified) values. 
     * The instantiated command is written to local disk and made executable.
 8. Container resolution:
-    * If alternative container images are specified, the ["best"](SPEC.md#container) one is selected.
+    * If alternative container images are specified, the ["best"](../SPEC.md#container) one is selected.
     * The image is "pulled" to the local environment - this may involve a literal `docker pull`, downloading a tarball and calling `docker load` or `docker import`, or some other mechanism.
 9. Command execution: The instantiated command is staged within the container (along with any other necessary volumes) and executed there. All outputs should be created relative to a staged output directory. If the command exits with any return code not specified in `runtime.returnCodes`, task execution exits with an error.
 10. Output ordering: Any output declarations that are initialized with expressions have their expressions examined to determine their dependencies. Declarations are then ordered such that they can be evaluated unambiguously.

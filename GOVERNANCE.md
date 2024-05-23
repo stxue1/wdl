@@ -6,20 +6,19 @@ WDL has a community-driven development process where most decisions are made thr
 
 Current core team members are:
 
-| Name               | Organization            | github                  |
-|:-------------------|:-------------|:------------------
-| Jeff Gentry        | Fulcrum Genomics                 | [geoffjentry](https://github.com/geoffjentry) |
-| Mike Lin           | Chan Zuckerberg Initiative        | [mlin](https://github.com/mlin) |
-| Patrick Magee      | DNAstack                        | [patmagee](https://github.com/patmagee) |
-| Brian O'Connor     | University of California, Santa Cruz | [briandoconnor](https://github.com/briandoconnor) |
-| Geraldine Van der Auwera | Broad Institute | [vdauwera](https://github.com/vdauwera) |
-| Christopher Llanwarne | Broad Institute | [cjllanwarne](https://github.com/cjllanwarne) |
-| John Didion | Fulcrum Genomics | [jdidion](https://github.com/jdidion) |
-| Michael Franklin | Centre for Population Genomics | [illusional](https://github.com/illusional) |
-| Amy Paguirigan | Fred Hutch | [vortexing](https://github.com/vortexing) |
-| Ruben Vorderman | Leiden University Medical Center | [rhpvorderman](https://github.com/rhpvorderman) |
-| Venkat Malladi | Microsoft | [vsmalladi](https://github.com/vsmalladi) |
-
+| Name                  | Organization                         | github                                            |
+| :-------------------- | :----------------------------------- | :------------------------------------------------ |
+| John Didion           | Fulcrum Genomics                     | [jdidion](https://github.com/jdidion)             |
+| Taylor Firman         | Fred Hutch                           | [tefirman](https://github.com/tefirman)           |
+| Michael Franklin      | Centre for Population Genomics       | [illusional](https://github.com/illusional)       |
+| Jeff Gentry           | Fulcrum Genomics                     | [geoffjentry](https://github.com/geoffjentry)     |
+| Mike Lin              | Chan Zuckerberg Initiative           | [mlin](https://github.com/mlin)                   |
+| Christopher Llanwarne | Broad Institute                      | [cjllanwarne](https://github.com/cjllanwarne)     |
+| Patrick Magee         | DNAstack                             | [patmagee](https://github.com/patmagee)           |
+| Venkat Malladi        | Microsoft                            | [vsmalladi](https://github.com/vsmalladi)         |
+| Brian O'Connor        | University of California, Santa Cruz | [briandoconnor](https://github.com/briandoconnor) |
+| Lee Pang              | Amazon                               | [wleepang](https://github.com/wleepang)           |
+| Ruben Vorderman       | Leiden University Medical Center     | [rhpvorderman](https://github.com/rhpvorderman)   |
 
 At the core group's discretion a new member may be added by a majority vote. This addition will be done to recognize **significant** contributions to the community. *Contributions* include such things as:
 
