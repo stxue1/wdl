@@ -9,11 +9,11 @@ I understand that WDL is a community-driven standard. Any ideas or suggestions I
 # How to contribute
 ## Contributions to WDL discussions
 
-WDL is the bioinformatics workflow language meant to be written and read by humans. In order to achieve this goal we rely on actual humans to help keep us on the right course.  Fellow WDL enthusiasts debate the finer points of syntax over in the [WDL developers forum](FIXME) and everyone is invited to participate. You'll need to register yourself to participate in the forum.
+WDL is the bioinformatics workflow language meant to be written and read by humans. In order to achieve this goal we rely on actual humans to help keep us on the right course. Fellow WDL enthusiasts debate the finer points of syntax in the [WDL Slack](https://join.slack.com/t/openwdl/shared_invite/zt-ctmj4mhf-cFBNxIiZYs6SY9HgM9UAVw) and everyone is invited to participate (registration required).
 
 ## Contributions to the WDL ecosystem
 
-As WDL increases in popularity, a number of people are [building tools](https://software.broadinstitute.org/wdl/toolkit) to make it easier to interact with WDL or platforms that support it. If you've created something which you think would be useful we'd love to hear about it! We can help you help us help everyone.
+As WDL increases in popularity, a number of people are [building tools](README.md#software-and-tools) to make it easier to interact with WDL or platforms that support it. If you've created something which you think would be useful we'd love to hear about it! We can help you help us help everyone.
 
 ## Contributions to the documentation, code, etc
 

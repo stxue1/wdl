@@ -82,16 +82,16 @@ These items are ambiguous in either or both of the Draft-2 and 1.0 specs - wheth
 
 * Draft-2
     * [Specification](https://github.com/openwdl/wdl/blob/main/versions/draft-2/SPEC.md#alternative-heredoc-syntax)
-    * [Hermes grammar](https://github.com/openwdl/wdl/blob/main/versions/draft-2/parsers/grammar.hgr)
+    * [Hermes grammar](https://github.com/openwdl/wdl-parsers/blob/main/hermes/draft-2/grammar.hgr)
 * 1.0
     * [Specification](https://github.com/openwdl/wdl/blob/main/versions/1.0/SPEC.md#command-section)
-    * [Hermes grammar](https://github.com/openwdl/wdl/blob/main/versions/1.0/parsers/hermes/grammar.hgr)
+    * [Hermes grammar](https://github.com/openwdl/wdl-parsers/tree/main/hermes/1.0/grammar.hgr)
 * [The diff between Draft-2 and 1.0 specs](https://github.com/jdidion/wdl/commit/35b49a815858d45e6111899296ae4beb729fe13a?short_path=22feea2#diff-22feea2e46776b17b2da5ddc2717b767)
 * 1.1
     * [Specification](https://github.com/openwdl/wdl/blob/main/versions/1.1/SPEC.md)
-    * [Hermes grammar](https://github.com/openwdl/wdl/tree/main/versions/1.1/parsers/hermes)
+    * [Hermes grammar](https://github.com/openwdl/wdl-parsers/blob/main/hermes/1.1/grammar.hgr)
     * [ANTLR4 grammar](https://github.com/openwdl/wdl/tree/main/versions/1.1/parsers/antlr4)
 * development
     * [Specification](https://github.com/openwdl/wdl/blob/main/versions/development/SPEC.md)
-    * [Hermes grammar](https://github.com/openwdl/wdl/tree/main/versions/development/parsers/hermes)
+    * [Hermes grammar](https://github.com/openwdl/wdl-parsers/blob/main/hermes/development/grammar.hgr)
     * [ANTLR4 grammar](https://github.com/openwdl/wdl/tree/main/versions/development/parsers/antlr4)

@@ -65,7 +65,7 @@ The WDL community also has an official [blog](https://dev.to/openwdl) where anno
 
 - [wdl-docs](https://docs.openwdl.org/en/stable/)
 - [learn-wdl](https://github.com/openwdl/learn-wdl)
-- [WDL Resources](https://support.terra.bio/hc/en-us/sections/360007274612-WDL-Documentation) provided by Terra (a product of the Broad Institute)
+- [WDL Resources](https://support.terra.bio/hc/en-us/sections/360007274612-WDL-Resources) provided by Terra (a product of the Broad Institute)
 
 ## Published Workflows 
 
