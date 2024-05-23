@@ -1495,7 +1495,7 @@ The following sections enumerate the hidden and scoped types that are available 
 
 * It is the type of the special [`None`](#optional-types-and-none) value.
 * It is the return type of some standard library functions, such as [`read_json`](#read_json).
-* It is the type of some reserved [`requirements`](#-requirements-section) and [`hints`](#-hints-section) attributes.
+* It is the type of some [`requirements`](#-requirements-section) and reserved [`hints`](#-hints-section) attributes.
 
 ##### `hints`, `input`, and `output` (Scoped Types)
 
@@ -6048,7 +6048,7 @@ A workflow is comprised of the following elements:
 
 * A single, optional [`input`](#task-inputs) section (_identical to the `input` section within tasks_).
 * Any number of workflow execution elements, which include the following:
-* A [private declaration](#private-declarations) (_identical to private declarations within tasks_).
+  * A [private declaration](#private-declarations) (_identical to private declarations within tasks_).
   * A [`call`](#call-statement) statement, which invokes tasks or subworkflows.
   * A [`scatter`](#scatter-statement) statement, which enables parallelized of workflow execution elements across collections.
   * A [conditional (`if`)](#conditional-statement) statement, which enables conditional execution of workflow execution elements.
