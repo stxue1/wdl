@@ -17,31 +17,6 @@ Keep the changelog pleasant to read in the text editor:
 + Properly indent blocks.
 -->
 
-version development
----------------------------
-
-+ Fixed description of ternary operator to say that the type, not the value,
-  of the if-then-else is the same regardless of which side is evaluated.
-  [PR 476](https://github.com/openwdl/wdl/pull/476) by @notestaff
-
-+ Lexer rule BeginWhitespace now matches non-empty string.
-  [PR 440](https://github.com/openwdl/wdl/pull/440) by @yunhailuo
-
-+ Runtime section no longer accepts arbitrary keys. Added new hints section for arbitrary runtime hints.
-  [PR 315](https://github.com/openwdl/wdl/pull/315) by @patmagee
-
-+ Removes string interpolator options. 
-  [PR 229](https://github.com/openwdl/wdl/pull/229) and [PR 368](https://github.com/openwdl/wdl/pull/366) 
-  by @EvanTheB and @illusional. 
-
-+ `Object` has been removed from WDL. `struct` can be used to achieve the same
-  type of functionality in a more explicit way.
-  [PR 283](https://github.com/openwdl/wdl/pull/283) by @patmagee.
-
-+ Added a new `Directory` type to make it easier when working with inputs that
-  consist of multiple files.
-  [PR 241](https://github.com/openwdl/wdl/pull/241) by @cjllanwarne.
-
 version 1.2.0
 ---------------------------
 
@@ -108,6 +83,22 @@ version 1.2.0
 + Clarified the meaning of a remote parent folder for the purposes of localization.
 
 + Clarified that accessing a non-existent member of an object, struct, or call is an error.
+
+version 1.1.2
+---------------------------
+
++ State that `Union` is also the type of some `runtime` attributes.
+
++ Remove some syntax sections that were missed in 1.1.1.
+
++ Clarify short-circuiting of boolean expressions (#199)
+
++ Added requirement for tests to the RFC
+
++ Clarifies number of sections allowed within `task` and `workflow` blocks.
+  [PR 598](https://github.com/openwdl/wdl/pull/598) by @claymcleod
+
++ Clarified that `read_bool` is case-insensitive, and added an example.
 
 version 1.1.1
 ---------------------------
