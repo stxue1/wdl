@@ -3009,9 +3009,7 @@ Tasks are comprised of the following elements:
 * A single, optional [`input`](#task-inputs) section, which defines the inputs for the task.
 * A single, required [`command`](#command-section), which defines the Bash script to be executed.
 * A single, optional [`output`](#task-outputs) section, which defines the outputs for the task.
-* A single, optional [`requirements`](#✨-requirements-section) section, which defines the minimum, required runtime environment conditions.
-* A single, optional [`hints`](#✨-hints-section) section, which provides hints to the execution engine.
-* 🗑️ A single, optional [`runtime`](#-runtime-section) section, which defines the runtime environment conditions. This is mutually exclusive with the `requirements` and `hints` sections.
+* A single, optional [`runtime`](#-runtime-section) section, which defines the runtime environment conditions.
 * A single, optional [`meta`](#metadata-sections) section, which defines task-level metadata.
 * A single, optional [`parameter_meta`](#parameter-metadata-section) section, which defines parameter-level metadata.
 * Any number of [private declarations](#private-declarations).
