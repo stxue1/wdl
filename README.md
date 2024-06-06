@@ -97,6 +97,7 @@ Please see the documentation associated with each tool/platform for information 
 | [dxCompiler](https://github.com/dnanexus/dxCompiler)                           | Yes                   | No              | No    | DNAnexus              |
 | [MiniWDL](https://github.com/chanzuckerberg/miniwdl)                           | Yes                   | Yes             | SLURM | AWS Batch             |
 | [Terra](https://terra.bio/)                                                    | No                    | No              | No    | Azure, GCP            |
+| [Toil](https://toil.readthedocs.io/en/master/wdl/introduction.html)            | Yes                   | Yes             | Many  | GCP, AWS, WES         |
 
 \* Also see [WDL Runner](https://github.com/broadinstitute/wdl-runner), a script for launch WDL workflows on GCP using Cromwell
 
