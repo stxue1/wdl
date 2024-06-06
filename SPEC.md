@@ -419,7 +419,7 @@ There is no special syntax for multi-line comments - simply use a `#` at the sta
     # This comment will not be included within the command
     command <<<
       # This comment WILL be included within the command after it has been parsed
-      cat ~{number * 2}
+      echo ~{number * 2}
     >>>
 
     output {
