@@ -1148,7 +1148,7 @@ Example output:
 
 ```json
 {
-  "test_struct.person": {
+  "test_struct.john": {
     "name": "John",
     "account": {
       "account_number": "123456",
@@ -1424,18 +1424,20 @@ workflow map_to_struct {
   String b = "key"
   String c = "lookup"
 
-  # What are the keys to this Struct?
-  Words literal_syntax = Words {
-    a: 10,
-    b: 11,
-    c: 12
-  }
-
-  # What are the keys to this Struct?
-  Words map_coercion = {
-    a: 10,
-    b: 11,
-    c: 12
+  output {
+    # What are the keys to this Struct?
+    Words literal_syntax = Words {
+      a: 10,
+      b: 11,
+      c: 12
+    }
+  
+    # What are the keys to this Struct?
+    Words map_coercion = {
+      a: 10,
+      b: 11,
+      c: 12
+    }
   }
 }
 ```
@@ -2954,7 +2956,7 @@ workflow import_structs {
     }
   }
 
-  call person_struct.greet_person {
+  call person_struct_task.greet_person {
     input: person = patient
   }
 
@@ -3637,7 +3639,7 @@ Example output:
 
 ```json
 {
-  "python_strip": ["A", "B", "C"]
+  "python_strip.lines": ["A", "B", "C"]
 }
 ```
 </p>
@@ -3691,7 +3693,6 @@ Example input:
 ```json
 {
   "outputs.t": 5,
-  "outputs.write_outstr": false
 }
 ```
 
@@ -5680,7 +5681,8 @@ Example input:
   "allow_nested.msg1": "hello",
   "allow_nested.msg2": "goodbye",
   "allow_nested.my_ints": [1, 2, 3],
-  "allow_nested.ref_file": "hello.txt"
+  "allow_nested.ref_file": "hello.txt",
+  "allow_nested.repeat2.i": 2
 }
 ```
 
@@ -5690,7 +5692,6 @@ Example output:
 {
   "allow_nested.lines1": ["hello", "hello", "hello"],
   "allow_nested.lines2": ["goodbye", "goodbye"],
-  "allow_nested.repeat2.i": 2,
   "allow_nested.incrs": [2, 3, 4]
 }
 ```
@@ -6054,12 +6055,12 @@ workflow if_else {
   
   # the body *is not* evaluated since 'b' is false
   if (is_morning) {
-    call greet as morning { time = "morning" }
+    call greet as morning { input: time = "morning" }
   }
 
   # the body *is* evaluated since !b is true
   if (!is_morning) {
-    call greet as afternoon { time = "afternoon" }
+    call greet as afternoon { input: time = "afternoon" }
   }
 
   output {
@@ -6104,7 +6105,7 @@ workflow nested_if {
 
   if (morning) {
     if (friendly) {
-      call if_else.greet { time = "morning" }
+      call if_else.greet { input: time = "morning" }
     }
   }
 
@@ -8090,7 +8091,7 @@ workflow test_prefix {
   Array[Int] env2 = [1, 2, 3]
 
   output {
-    Array[String] env_prefixed = prefix("-e ", env1)
+    Array[String] env1_prefixed = prefix("-e ", env1)
     Array[String] env2_prefixed = prefix("-f ", env2)
   }
 }
@@ -9864,7 +9865,7 @@ Example output:
 
 ```json
 {
-  "serialize_array_delim.strings": [
+  "serialize_array_delim.heads": [
     "hello world",
     "hello world",
     "hi_world"
