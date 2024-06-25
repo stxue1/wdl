@@ -4239,6 +4239,7 @@ task test_gpu {
   }
   
   runtime {
+    container: "archlinux:latest"
     gpu: true
   }
 }
