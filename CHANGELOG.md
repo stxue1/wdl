@@ -45,7 +45,7 @@ version development
 version 1.1.3
 ---------------------------
 
-* Fix issues with examples (#653, #654, #661, #662, #663). Thanks to @stxue1!
+* Fix issues with examples (#653, #654, #661, #662, #663, #664). Thanks to @stxue1!
 
 version 1.1.2
 ---------------------------

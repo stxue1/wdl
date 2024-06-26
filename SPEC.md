@@ -5684,7 +5684,8 @@ Example input:
   "allow_nested.msg1": "hello",
   "allow_nested.msg2": "goodbye",
   "allow_nested.my_ints": [1, 2, 3],
-  "allow_nested.ref_file": "hello.txt"
+  "allow_nested.ref_file": "hello.txt",
+  "allow_nested.repeat2.i": 2
 }
 ```
 
@@ -5694,7 +5695,6 @@ Example output:
 {
   "allow_nested.lines1": ["hello", "hello", "hello"],
   "allow_nested.lines2": ["goodbye", "goodbye"],
-  "allow_nested.repeat2.i": 2,
   "allow_nested.incrs": [2, 3, 4]
 }
 ```
