@@ -535,7 +535,12 @@ The following primitive types exist in WDL:
 * A `File` represents a file (or file-like object).
     * A `File` declaration can have a string value indicating a relative or absolute path on the local file system.
     * Within a WDL file, literal values for files may only be local (relative or absolute) paths.
+    * The path assigned to a `File` is not required to be valid unless and until it is accessed.
+      * To read from a file, it must exist and be assigned appropriate permissions.
+      * To write to a file, the parent directory must be assigned appropriate permissions.
     * An execution engine may support other ways to specify [`File` inputs (e.g. as URIs)](#input-and-output-formats), but prior to task execution it must [localize inputs](#task-input-localization) so that the runtime value of a `File` variable is a local path.
+      * Remote files must be treated as read-only.
+      * A remote file is only required to be vaild at the time that the execution engine needs to localize it.
 
 <details>
   <summary>
