@@ -3609,12 +3609,12 @@ task python_strip {
   }
 
   command<<<
-  python <<CODE
+    python <<CODE
     with open("~{infile}") as fp:
       for line in fp:
         if not line.startswith('#'):
           print(line.strip())
-  CODE
+    CODE
   >>>
 
   output {
@@ -3650,10 +3650,10 @@ Given an `infile` value of `/path/to/file`, the execution engine will produce th
 
 ```sh
 python <<CODE
-  with open("/path/to/file") as fp:
-    for line in fp:
-      if not line.startswith('#'):
-        print(line.strip())
+with open("/path/to/file") as fp:
+  for line in fp:
+    if not line.startswith('#'):
+      print(line.strip())
 CODE
 ```
 
