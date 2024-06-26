@@ -1149,7 +1149,7 @@ Example output:
 
 ```json
 {
-  "test_struct.person": {
+  "test_struct.john": {
     "name": "John",
     "account": {
       "account_number": "123456",
