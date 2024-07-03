@@ -7615,7 +7615,7 @@ Example: write_json_fail.wdl
 version 1.1
 
 workflow write_json_fail {
-  Pair[Int, Map[Int, String]] x = (1, {"2": "hello"})
+  Pair[Int, Map[Int, String]] x = (1, {2: "hello"})
   # this fails with an error - Map with Int keys is not serializable
   File f = write_json(x)
 }
