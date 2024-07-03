@@ -2937,6 +2937,7 @@ task calculate_bill {
 
 workflow import_structs {
   input {
+    File infile
     Person doctor = Person {
       age: 10,
       name: Name {
@@ -2948,8 +2949,6 @@ workflow import_structs {
         annual: true
       }
     }
-
-    File infile
 
     Patient patient = Patient {
       name: Name {
