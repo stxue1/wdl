@@ -367,7 +367,7 @@ WDL also provides features for implementing more complex workflows. For example,
   
   ```json
   {
-    "hello.all_matches": [["hi_world"], ["hi_pal"]]
+    "hello_parallel.all_matches": [["hi_world"], ["hello"]]
   }
   ```
   </p>
@@ -419,7 +419,7 @@ There is no special syntax for multi-line comments - simply use a `#` at the sta
     # This comment will not be included within the command
     command <<<
       # This comment WILL be included within the command after it has been parsed
-      cat ~{number * 2}
+      echo ~{number * 2}
     >>>
 
     output {
@@ -656,7 +656,8 @@ An optional declaration has a default initialization of `None`, which indicates 
     "optionals.test_defined": false,
     "optionals.test_defined2": true,
     "optionals.test_is_none": true,
-    "optionals.test_not_none": false
+    "optionals.test_not_none": false,
+    "optionals.test_non_equal": true
   }
   ```
   </p>
@@ -768,7 +769,7 @@ task sum {
   }
   
   command <<<
-  printf ~{sep(" ", ints)} | awk '{tot=0; for(i=1;i<=NF;i++) tot+=$i; print tot}'
+  printf "~{sep(" ", ints)}" | awk '{tot=0; for(i=1;i<=NF;i++) tot+=$i; print tot}'
   >>>
   
   output {
@@ -833,8 +834,8 @@ Example output:
 {
   "non_empty_optional.nonempty1": [0.0],
   "non_empty_optional.nonempty2": [null, 1],
-  "non_empty_optional.nonempty3": [],
-  "non_empty_optional.nonempty4": [0.0]
+  "non_empty_optional.nonempty3": null,
+  "non_empty_optional.nonempty4": [0]
 }
 ```
 </p>
@@ -936,7 +937,7 @@ version 1.1
 workflow test_map {
   Map[Int, Int] int_to_int = {1: 10, 2: 11}
   Map[String, Int] string_to_int = { "a": 1, "b": 2 }
-  Map[File, Array[Int]] file_to_ints = {
+  Map[String, Array[Int]] string_to_ints = {
     "/path/to/file1": [0, 1, 2],
     "/path/to/file2": [9, 8, 7]
   }
@@ -944,7 +945,7 @@ workflow test_map {
   output {
     Int ten = int_to_int[1]  # evaluates to 10
     Int b = string_to_int["b"]  # evaluates to 2
-    Array[Int] ints = file_to_ints["/path/to/file1"]  # evaluates to [0, 1, 2]
+    Array[Int] ints = string_to_ints["/path/to/file1"]  # evaluates to [0, 1, 2]
   }
 }
 ```
@@ -1295,8 +1296,11 @@ Example: string_to_file.wdl
 version 1.1
 
 workflow string_to_file {
-  String path1 = "/path/to/file"
-  File path2 = "/path/to/file"
+  input {
+    File infile
+  }
+  String path1 = infile
+  File path2 = infile
 
   # valid - String coerces unambiguously to File
   File path3 = path1
@@ -1311,7 +1315,9 @@ workflow string_to_file {
 Example input:
 
 ```json
-{}
+{
+  "string_to_file.infile": "hello.txt"
+}
 ```
 
 Example output:
@@ -1563,7 +1569,7 @@ task count_lines {
   }
 
   command <<<
-    wc -l ~{write_lines(array)}
+    wc -l < ~{write_lines(array)}
   >>>
   
   output {
@@ -1866,8 +1872,8 @@ Example output:
 {
   "array_map_equality.is_true1": true,
   "array_map_equality.is_true2": true,
-  "array_map_equality.is_false1": true,
-  "array_map_equality.is_false2": true
+  "array_map_equality.is_false1": false,
+  "array_map_equality.is_false2": false
 }
 ```
 </p>
@@ -2050,7 +2056,7 @@ version 1.1
 struct Experiment {
   String id
   Array[String] variables
-  Map[String, Float] data
+  Map[String, String] data
 }
 
 workflow nested_access {
@@ -2082,16 +2088,14 @@ Example input:
       "id": "mouse_size",
       "variables": ["name", "height"],
       "data": {
-        "name": "Pinky",
-        "height": 7
+        "name": "Pinky"
       }
     },
     {
       "id": "pig_weight",
       "variables": ["name", "weight"],
       "data": {
-        "name": "Porky",
-        "weight": 1000
+        "name": "Porky"
       }
     }
   ]
@@ -2211,7 +2215,7 @@ Example input:
 {
   "placeholders.start": "h",
   "placeholders.end": "o",
-  "placeholders.input": "hello"
+  "placeholders.instr": "hello"
 }
 ```
 
@@ -2219,7 +2223,8 @@ Example output:
 
 ```json
 {
-  "placeholders.cmd": "grep 'h...o' hello"
+  "placeholders.cmd": "grep 'h...o' hello",
+  "placeholders.s": "4"
 }
 ```
 </p>
@@ -2298,12 +2303,15 @@ Example: placeholder_coercion.wdl
 version 1.1
 
 workflow placeholder_coercion {
-  File x = "/hij"
+  input {
+    File x
+  }
+  String x_as_str = x
   Int? i = None
 
   output {
     Boolean is_true1 = "~{"abc"}" == "abc"
-    Boolean is_true2 = "~{x}" == "/hij"
+    Boolean is_true2 = "~{x}" == x_as_str
     Boolean is_true3 = "~{5}" == "5"
     Boolean is_true4 = "~{3.141}" == "3.141000"
     Boolean is_true5 = "~{3.141 * 1E-10}" == "0.000000"
@@ -2317,7 +2325,9 @@ workflow placeholder_coercion {
 Example input:
 
 ```json
-{}
+{
+  "placeholder_coercion.x": "hello.txt"
+}
 ```
 
 Example output:
@@ -2431,7 +2441,7 @@ Example output:
 
 ```json
 {
-  "flags.num_matches": 2
+  "flags.num_matches": "2"
 }
 ```
 </p>
@@ -2748,7 +2758,7 @@ task greet_person {
   printf "Hello ~{person.name.first}! You have ~{length(assay_array)} test result(s) available.\n"
 
   if ~{defined(person.income)}; then
-    if [ "~{select_first([person.income]).amount}" -gt 1000 ]; then
+    if [ ~{round(select_first([person.income]).amount)} -gt 1000 ]; then
       currency="~{select_first([select_first([person.income]).currency, "USD"])}"
       printf "Please transfer $currency 500 to continue"
     fi
@@ -2766,7 +2776,7 @@ Example input:
 
 ```json
 {
-  "person_struct.person": {
+  "greet_person.person": {
     "name": {
       "first": "Richard",
       "last": "Rich"
@@ -2787,7 +2797,7 @@ Example output:
 
 ```json
 {
-  "person_struct.message": "Hello Richard! You have 1 test result(s) available.\nPlease transfer USD 500 to continue"
+  "greet_person.message": "Hello Richard! You have 1 test result(s) available.\nPlease transfer USD 500 to continue"
 }
 ```
 
@@ -2939,6 +2949,8 @@ workflow import_structs {
       }
     }
 
+    File infile
+
     Patient patient = Patient {
       name: Name {
         first: "Bill",
@@ -2951,7 +2963,7 @@ workflow import_structs {
         period: "hourly"
       },
       assay_data: {
-        "glucose": "hello.txt"
+        "glucose": infile
       }
     }
   }
@@ -2974,14 +2986,16 @@ workflow import_structs {
 Example input:
 
 ```json
-{}
+{
+  "import_structs.infile": "hello.txt"
+}
 ```
 
 Example output:
 
 ```json
 {
-  "import_structs.bill": 175000
+  "import_structs.bill": 175000.0
 }
 ```
 </p>
@@ -3480,7 +3494,7 @@ task test_placeholders {
     # The `read_lines` function reads the lines from a file into an
     # array. The `sep` function concatenates the lines with a space
     # (" ") delimiter. The resulting string is then printed to stdout.
-    printf ~{sep(" ", read_lines(infile))}
+    printf "~{sep(" ", read_lines(infile))}"
   >>>
   
   output {
@@ -3609,10 +3623,10 @@ task python_strip {
 
   command<<<
   python <<CODE
-    with open("~{infile}") as fp:
-      for line in fp:
-        if not line.startswith('#'):
-          print(line.strip())
+  with open("~{infile}") as fp:
+    for line in fp:
+      if not line.startswith('#'):
+        print(line.strip())
   CODE
   >>>
 
@@ -3692,7 +3706,7 @@ Example input:
 
 ```json
 {
-  "outputs.t": 5,
+  "outputs.t": 5
 }
 ```
 
@@ -3785,7 +3799,7 @@ task glob {
   }
 
   command <<<
-  for i in 1..~{num_files}; do
+  for i in {1..~{num_files}}; do
     printf ${i} > file_${i}.txt
   done
   >>>
@@ -3840,7 +3854,7 @@ task relative_and_absolute {
   >>>
 
   output {
-    File something = read_string("my/path/to/something.txt")
+    String something = read_string("my/path/to/something.txt")
     File bashrc = "/root/.bashrc"
   }
 
@@ -3890,7 +3904,7 @@ task optional_output {
   }
   command <<<
     printf "1" > example1.txt
-    if ~{make_example2}; do
+    if ~{make_example2}; then
       printf "2" > example2.txt
     fi
   >>>
@@ -3917,7 +3931,9 @@ Example output:
 ```json
 {
   "optional_output.example2": null,
-  "optional_output.file_array_len": 1
+  "optional_output.file_array_len": 1,
+  "optional_output.example1": "example1.txt",
+  "optional_output.file_array": ["example1.txt", null]
 }
 ```
 
@@ -3996,7 +4012,7 @@ Example output:
 
 ```json
 {
-  "runtime_container.is_true": true
+  "runtime_container.is_true": "true"
 }
 ```
 </p>
@@ -4809,11 +4825,11 @@ task ex_paramter_meta {
   }
 
   command <<<
-    wc ~{if lines_only then '-l' else ''} ~{infile}
+    wc ~{if lines_only then '-l' else ''} < ~{infile}
   >>>
 
   output {
-     String result = stdout()
+     String result = read_int(stdout())
   }
 
   runtime {
@@ -4836,7 +4852,7 @@ Example output:
 
 ```json
 {
-  "ex_paramter_meta.result": "3"
+  "ex_paramter_meta.result": "2"
 }
 ```
 </p>
@@ -4855,7 +4871,7 @@ version 1.1
 
 task hisat2 {
   input {
-    File index
+    File index_tar_gz
     String sra_acc
     Int? max_reads
     Int threads = 8
@@ -4863,15 +4879,15 @@ task hisat2 {
     Float disk_size_gb = 100
   }
 
-  String index_id = basename(index, ".tar.gz")
+  String index_id = basename(index_tar_gz, ".tar.gz")
 
   command <<<
     mkdir index
-    tar -C index -xzf ~{index}
+    tar -C index -xzf ~{index_tar_gz}
     hisat2 \
       -p ~{threads} \
       ~{if defined(max_reads) then "-u ~{select_first([max_reads])}" else ""} \
-      -x index/~{index_id} \
+      -x index/grch38/genome \
       --sra-acc ~{sra_acc} > ~{sra_acc}.sam
   >>>
   
@@ -4891,7 +4907,7 @@ task hisat2 {
   }
 
   parameter_meta {
-    index: "Gzipped tar file with HISAT2 index files"
+    index_tar_gz: "Gzipped tar file with HISAT2 index files"
     sra_acc: "SRA accession number or reads to align"
   }
 }
@@ -5235,7 +5251,7 @@ task echo {
   }
   
   command <<<
-  printf ~{msg}
+  printf '~{msg}\n'
   >>>
   
   output {
@@ -5303,7 +5319,7 @@ task foobar {
   }
 
   command <<<
-  wc -l ~{infile}
+  wc -l < ~{infile}
   >>>
 
   output {
@@ -5345,7 +5361,7 @@ Example output:
 
 ```json
 {
-  "other.results": 3
+  "other.results": 2
 }
 ```
 </p>
@@ -5415,8 +5431,8 @@ task repeat {
   }
   
   command <<<
-  for i in 1..~{i}; do
-    printf ~{select_first([opt_string, "default"])}
+  for i in {1..~{i}}; do
+    printf '~{select_first([opt_string, "default"])}\n'
   done
   >>>
 
@@ -5851,7 +5867,7 @@ workflow nested_scatter {
     Array[String] salutations = ["Hello", "Goodbye"]
   }
 
-  Array[String] honorifics = ["Wizard", "Mr."]
+  Array[String] honorifics = ["Mr.", "Wizard"]
 
   # the zip() function creates an array of pairs
   Array[Pair[String, String]] name_pairs = zip(first_names, last_names)
@@ -5932,7 +5948,8 @@ Example output:
       ["Hello Mr. Merry, how are you?", "Hello Mr. Merry Brandybuck, how are you?"],
       ["Goodbye Mr. Merry, how are you?", "Goodbye Mr. Merry Brandybuck, how are you?"]
     ]
-  ]
+  ],
+  "nested_scatter.used_honorifics": ["Mr.", "Wizard", "Mr."]
 }
 ```
 </p>
@@ -6019,7 +6036,8 @@ Example output:
 ```json
 {
   "test_conditional.result_array": [4, 6, 8, 10],
-  "test_conditional.maybe_result2": [0, 4, 6, 8, 10]
+  "test_conditional.maybe_result2": [0, 4, 6, 8, 10],
+  "test_conditional.j_out": 2
 }
 ```
 </p>
@@ -6210,7 +6228,7 @@ Example output:
 
 ```json
 {
-  "test_floor.all_true": true
+  "test_floor.all_true": [true, true]
 }
 ```
 </p>
@@ -6265,7 +6283,7 @@ Example output:
 
 ```json
 {
-  "test_ceil.all_true": true
+  "test_ceil.all_true": [true, true]
 }
 ```
 </p>
@@ -6320,7 +6338,7 @@ Example output:
 
 ```json
 {
-  "test_round.all_true": true
+  "test_round.all_true": [true, false]
 }
 ```
 </p>
@@ -6443,8 +6461,8 @@ Example output:
 
 ```json
 {
-  "test_max.min1": 1.0,
-  "test_max.min2": 1.0
+  "test_max.min1": 2.0,
+  "test_max.min2": 2.0
 }
 ```
 </p>
@@ -6491,7 +6509,7 @@ workflow test_sub {
     String chocoearly = sub(chocolike, "late", "early") # I like chocoearly when\nit's early
     String chocolate = sub(chocolike, "late$", "early") # I like chocolate when\nit's early
     String chocoearlylate = sub(chocolike, "[^ ]late", "early") # I like chocearly when\nit's late
-    String choco4 = sub(chocolike, " [:alpha:]{4} ", " 4444 ") # I 4444 chocolate 4444\nit's late
+    String choco4 = sub(chocolike, " [a-z]{4} ", " 4444 ") # I 4444 chocolate when\nit's late
     String no_newline = sub(chocolike, "\\n", " ") # "I like chocolate when it's late"
   }
 }
@@ -6512,7 +6530,7 @@ Example output:
   "test_sub.chocoearly": "I like chocoearly when\nit's early",
   "test_sub.chocolate": "I like chocolate when\nit's early",
   "test_sub.chocoearlylate": "I like chocearly when\nit's late",
-  "test_sub.choco4": "I 4444 chocolate 4444\nit's late",
+  "test_sub.choco4": "I 4444 chocolate when\nit's late",
   "test_sub.no_newline": "I like chocolate when it's late"
 }
 ```
@@ -6673,7 +6691,7 @@ task gen_files {
   }
 
   command <<<
-    for i in 1..~{num_files}; do
+    for i in {1..~{num_files}}; do
       printf ${i} > a_file_${i}.txt
     done
     mkdir a_dir
@@ -6815,7 +6833,7 @@ task echo_stdout {
   command <<< printf "hello world" >>>
 
   output {
-    File message = read_string(stdout())
+    String message = read_string(stdout())
   }
 }
 ```
@@ -6860,7 +6878,7 @@ task echo_stderr {
   command <<< >&2 printf "hello world" >>>
 
   output {
-    File message = read_string(stderr())
+    String message = read_string(stderr())
   }
 }
 ```
@@ -7061,8 +7079,8 @@ version 1.1
 
 task read_bool {
   command <<<
-  printf "  true  \n" > true_file
-  printf "  FALSE  \n" > false_file
+  printf "true" > true_file
+  printf "false" > false_file
   >>>
 
   output {
@@ -7383,8 +7401,8 @@ version 1.1
 
 task read_map {
   command <<<
-    printf "key1\tvalue1\n" >> map_file
-    printf "key2\tvalue2\n" >> map_file
+    printf "key1\tvalue1\n"
+    printf "key2\tvalue2\n"
   >>>
   
   output {
@@ -7598,7 +7616,7 @@ Example: write_json_fail.wdl
 version 1.1
 
 workflow write_json_fail {
-  Pair[Int, Map[Int, String]] x = (1, {2: "hello"})
+  Pair[Int, Map[Int, String]] x = (1, {"2": "hello"})
   # this fails with an error - Map with Int keys is not serializable
   File f = write_json(x)
 }
@@ -8179,7 +8197,7 @@ workflow test_suffix {
   Array[Int] env2 = [1, 2, 3]
 
   output {
-    Array[String] env1_suffix = suffix(".txt ", env1)
+    Array[String] env1_suffix = suffix(".txt", env1)
     Array[String] env2_suffix = suffix(".0", env2)
   }
 }
@@ -8481,7 +8499,7 @@ task double {
   command <<< >>>
 
   output {
-    Int d = n * n
+    Int d = 2 * n
   }
 }
 
@@ -8506,7 +8524,7 @@ Example input:
 
 ```json
 {
-  "test_range.n": 5
+  "test_range.i": 5
 }
 ```
 
@@ -8549,6 +8567,9 @@ workflow test_transpose {
   
   output {
     Boolean is_true = transpose(input_array) == expected_output_array
+    Array[Array[Int]] out = transpose(input_array)
+    Array[Array[Int]] expected = expected_output_array
+
   }
 }
 ```
@@ -10199,13 +10220,13 @@ task grep2 {
   }
 
   Pair[Array[String], Array[String]] opts_and_values = unzip(as_pairs(args))
-  Int n = length(opts_and_values.left)
+  Int n = length(opts_and_values.left) - 1
 
   command <<<
   opts=( ~{sep(" ", quote(opts_and_values.left))} )
   values=( ~{sep(" ", quote(opts_and_values.right))} )
   command="grep"
-  for i in 1..~{n}; do
+  for i in {0..~{n}}; do
     command="$command ${opts[i]}"="${values[i]}"
   done
   $command ~{pattern} ~{infile}
@@ -10288,7 +10309,7 @@ task serde_map_tsv {
   >>>
 
   output {
-    Map[String, String] new_items = read_map("lines")
+    Map[String, String] new_items = read_map(stdout())
   }
 }
 ```
@@ -10359,7 +10380,7 @@ version 1.1
 
 task serde_map_json {
   input {
-    Map[String, Float] read_quality_scores
+    Map[String, Int] read_quality_scores
   }
 
   command <<<
@@ -10375,7 +10396,7 @@ task serde_map_json {
   >>>
 
   output {
-    Map[String, Float] ascii_values = read_json(stdout())
+    Map[String, Int] ascii_values = read_json(stdout())
   }
 
   runtime {
