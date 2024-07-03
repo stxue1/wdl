@@ -7078,8 +7078,8 @@ version 1.1
 
 task read_bool {
   command <<<
-  printf "true" > true_file
-  printf "false" > false_file
+  printf "  true  " > true_file
+  printf "  false  " > false_file
   >>>
 
   output {
