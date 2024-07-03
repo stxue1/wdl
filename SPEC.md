@@ -7079,7 +7079,7 @@ version 1.1
 task read_bool {
   command <<<
   printf "  true  \n" > true_file
-  printf "  false  \n" > false_file
+  printf "  FALSE  \n" > false_file
   >>>
 
   output {
