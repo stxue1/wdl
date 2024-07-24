@@ -3995,7 +3995,7 @@ task runtime_container {
   >>>
   
   output {
-    String is_true = ubuntu_version == read_string(stdout())
+    Boolean is_true = ubuntu_version == read_string(stdout())
   }
 
   runtime {
@@ -4017,7 +4017,7 @@ Example output:
 
 ```json
 {
-  "runtime_container.is_true": "true"
+  "runtime_container.is_true": true
 }
 ```
 </p>
@@ -6447,8 +6447,8 @@ workflow test_max {
 
   output {
     # these two expressions are equivalent
-    Float min1 = if value1 > value2 then value1 else value2
-    Float min2 = max(value1, value2)
+    Float max1 = if value1 > value2 then value1 else value2
+    Float max2 = max(value1, value2)
   }
 }
 ```
@@ -6467,8 +6467,8 @@ Example output:
 
 ```json
 {
-  "test_max.min1": 2.0,
-  "test_max.min2": 2.0
+  "test_max.max1": 2.0,
+  "test_max.max2": 2.0
 }
 ```
 </p>
@@ -6515,7 +6515,7 @@ workflow test_sub {
     String chocoearly = sub(chocolike, "late", "early") # I like chocoearly when\nit's early
     String chocolate = sub(chocolike, "late$", "early") # I like chocolate when\nit's early
     String chocoearlylate = sub(chocolike, "[^ ]late", "early") # I like chocearly when\nit's late
-    String choco4 = sub(chocolike, " [a-z]{4} ", " 4444 ") # I 4444 chocolate when\nit's late
+    String choco4 = sub(chocolike, " [:alpha:]{4} ", " 4444 ") # I 4444 chocolate when\nit's late
     String no_newline = sub(chocolike, "\\n", " ") # "I like chocolate when it's late"
   }
 }
