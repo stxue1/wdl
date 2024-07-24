@@ -1,11 +1,12 @@
 # Workflow Description Language (WDL)
 
-This is version 1.1.2 of the Workflow Description Language (WDL) specification. It describes WDL `version 1.1`. It introduces a number of new features (denoted by the ✨ symbol) and clarifications to the [1.0](https://github.com/openwdl/wdl/blob/main/versions/1.0/SPEC.md) version of the specification. It also deprecates several aspects of the 1.0 specification that will be removed in the [next major WDL version](https://github.com/openwdl/wdl/blob/wdl-2.0/SPEC.md) (denoted by the 🗑 symbol).
+This is version 1.1.3 of the Workflow Description Language (WDL) specification. It describes WDL `version 1.1`. It introduces a number of new features (denoted by the ✨ symbol) and clarifications to the [1.0](https://github.com/openwdl/wdl/blob/main/versions/1.0/SPEC.md) version of the specification. It also deprecates several aspects of the 1.0 specification that will be removed in the [next major WDL version](https://github.com/openwdl/wdl/blob/wdl-2.0/SPEC.md) (denoted by the 🗑 symbol).
 
 ## Revisions
 
 Revisions to this specification are made periodically in order to correct errors, clarify language, or add additional examples. Revisions are released as "patches" to the specification, i.e., the third number in the specification version is incremented. No functionality is added or removed after the initial revision of the specification is ratified.
 
+* [1.1.3]():
 * [1.1.2](https://github.com/openwdl/wdl/tree/release-1.1.2/SPEC.md): 2024-04-12
 * [1.1.1](https://github.com/openwdl/wdl/tree/release-1.1.1/SPEC.md): 2023-10-04
 * [1.1.0](https://github.com/openwdl/wdl/tree/release-1.1.0/SPEC.md): 2021-01-29
@@ -534,7 +535,12 @@ The following primitive types exist in WDL:
 * A `File` represents a file (or file-like object).
     * A `File` declaration can have a string value indicating a relative or absolute path on the local file system.
     * Within a WDL file, literal values for files may only be local (relative or absolute) paths.
+    * The path assigned to a `File` is not required to be valid unless and until it is accessed.
+      * To read from a file, it must exist and be assigned appropriate permissions.
+      * To write to a file, the parent directory must be assigned appropriate permissions.
     * An execution engine may support other ways to specify [`File` inputs (e.g. as URIs)](#input-and-output-formats), but prior to task execution it must [localize inputs](#task-input-localization) so that the runtime value of a `File` variable is a local path.
+      * Remote files must be treated as read-only.
+      * A remote file is only required to be vaild at the time that the execution engine needs to localize it.
 
 <details>
   <summary>
@@ -1437,7 +1443,7 @@ workflow map_to_struct {
       b: 11,
       c: 12
     }
-  
+
     # What are the keys to this Struct?
     Words map_coercion = {
       a: 10,
@@ -3621,12 +3627,12 @@ task python_strip {
   }
 
   command<<<
-  python <<CODE
-  with open("~{infile}") as fp:
-    for line in fp:
-      if not line.startswith('#'):
-        print(line.strip())
-  CODE
+    python <<CODE
+    with open("~{infile}") as fp:
+      for line in fp:
+        if not line.startswith('#'):
+          print(line.strip())
+    CODE
   >>>
 
   output {
@@ -3662,10 +3668,10 @@ Given an `infile` value of `/path/to/file`, the execution engine will produce th
 
 ```sh
 python <<CODE
-  with open("/path/to/file") as fp:
-    for line in fp:
-      if not line.startswith('#'):
-        print(line.strip())
+with open("/path/to/file") as fp:
+  for line in fp:
+    if not line.startswith('#'):
+      print(line.strip())
 CODE
 ```
 
@@ -4254,6 +4260,7 @@ task test_gpu {
   }
   
   runtime {
+    container: "archlinux:latest"
     gpu: true
   }
 }
@@ -7659,9 +7666,10 @@ task write_json {
   command <<<
     python <<CODE
     import json
+    import sys
     with open("~{write_json(map)}") as js:
       d = json.load(js)
-      print(list(d.keys()))
+    json.dump(list(d.keys()), sys.stdout)
     CODE
   >>>
 
