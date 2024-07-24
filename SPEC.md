@@ -943,7 +943,7 @@ version 1.1
 workflow test_map {
   Map[Int, Int] int_to_int = {1: 10, 2: 11}
   Map[String, Int] string_to_int = { "a": 1, "b": 2 }
-  Map[String, Array[Int]] string_to_ints = {
+  Map[File, Array[Int]] file_to_ints = {
     "/path/to/file1": [0, 1, 2],
     "/path/to/file2": [9, 8, 7]
   }
@@ -951,7 +951,7 @@ workflow test_map {
   output {
     Int ten = int_to_int[1]  # evaluates to 10
     Int b = string_to_int["b"]  # evaluates to 2
-    Array[Int] ints = string_to_ints["/path/to/file1"]  # evaluates to [0, 1, 2]
+    Array[Int] ints = file_to_ints["/path/to/file1"]  # evaluates to [0, 1, 2]
   }
 }
 ```
@@ -1305,14 +1305,14 @@ workflow string_to_file {
   input {
     File infile
   }
-  String path1 = infile
-  File path2 = infile
+
+  String path1 = "~{infile}"
 
   # valid - String coerces unambiguously to File
-  File path3 = path1
+  File path2 = path1
 
   output {
-    Boolean paths_equal = path2 == path3
+    Boolean paths_equal = infile == path3
   }
 }
 ```
