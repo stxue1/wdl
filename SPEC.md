@@ -2094,14 +2094,16 @@ Example input:
       "id": "mouse_size",
       "variables": ["name", "height"],
       "data": {
-        "name": "Pinky"
+        "name": "Pinky",
+        "height": "10"
       }
     },
     {
       "id": "pig_weight",
       "variables": ["name", "weight"],
       "data": {
-        "name": "Porky"
+        "name": "Porky",
+        "weight": "100"
       }
     }
   ]
@@ -4888,12 +4890,12 @@ task hisat2 {
   String index_id = basename(index_tar_gz, ".tar.gz")
 
   command <<<
-    mkdir index
-    tar -C index -xzf ~{index_tar_gz}
+    mkdir "~{index_id}"
+    tar -C "~{index_id}" --strip-components 2 -xzf "~{index_tar_gz}"
     hisat2 \
       -p ~{threads} \
       ~{if defined(max_reads) then "-u ~{select_first([max_reads])}" else ""} \
-      -x index/grch38/genome \
+      -x "~{index_id}" \
       --sra-acc ~{sra_acc} > ~{sra_acc}.sam
   >>>
   
