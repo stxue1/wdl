@@ -1312,7 +1312,7 @@ workflow string_to_file {
   File path2 = path1
 
   output {
-    Boolean paths_equal = infile == path3
+    Boolean paths_equal = infile == path2
   }
 }
 ```
@@ -3941,14 +3941,6 @@ Example output:
   "optional_output.file_array_len": 1,
   "optional_output.example1": "example1.txt",
   "optional_output.file_array": ["example1.txt", null]
-}
-```
-
-Test config:
-
-```json
-{
-  "exclude_output": ["example1", "file_array"]
 }
 ```
 </p>
@@ -8594,6 +8586,8 @@ Example output:
 
 ```json
 {
+  "test_transpose.expected": [[0, 3], [1, 4], [2, 5]],
+  "test_transpose.out": [[0, 3], [1, 4], [2, 5]],
   "test_transpose.is_true": true
 }
 ```
