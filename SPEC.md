@@ -4573,7 +4573,7 @@ task test_hints {
   }
 
   command <<<
-  wc -l ~{foo}
+  wc -l < ~{foo}
   >>>
 
   output {
