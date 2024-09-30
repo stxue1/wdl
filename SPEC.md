@@ -4608,7 +4608,7 @@ Example output:
 
 ```json
 {
-  "test_hints.num_lines": 3
+  "test_hints.num_lines": 2
 }
 ```
 </p>
