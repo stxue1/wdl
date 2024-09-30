@@ -4693,7 +4693,9 @@ Example input:
 Example output:
 
 ```json
-{}
+{
+  "input_hint.experience": []
+}
 ```
 </p>
 </details>
